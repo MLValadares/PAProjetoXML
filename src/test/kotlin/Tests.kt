@@ -76,4 +76,31 @@ class Tests {
 //        val childTag = CompositeTag("child")
 //        assertFailsWith<UnsupportedOperationException>(stringTag.removeTag(childTag))
 //    }
+
+    //addAttribute
+    @Test
+    fun test6(){
+        val compositeTag = CompositeTag("div")
+        compositeTag.addAttribute("id", "container")
+        assertEquals("container", compositeTag.attributes["id"])
+    }
+
+
+    //modifyAttribute
+    @Test
+    fun test7(){
+        val compositeTag = CompositeTag("div")
+        compositeTag.addAttribute("class", "main")
+        compositeTag.modifyAttribute("class", "container")
+        assertEquals("container", compositeTag.attributes["class"])
+    }
+    //removeAttribute
+    @Test
+    fun test8(){
+        val compositeTag = CompositeTag("div")
+        compositeTag.addAttribute("id", "container")
+        assertTrue(compositeTag.attributes.containsKey("id"))
+        compositeTag.removeAttribute("id")
+        assertFalse(compositeTag.attributes.containsKey("id"))
+    }
 }
