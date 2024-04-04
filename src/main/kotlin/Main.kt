@@ -1,6 +1,10 @@
 class Document(
     val rootTag: Tag
-)
+){
+    override fun toString(): String {
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n${rootTag}"
+    }
+}
 
 interface Tag {
     val name: String
@@ -48,4 +52,9 @@ data class StringTag(
     override fun removeTag(tag: Tag) {
         throw UnsupportedOperationException("StringTag cannot have tag inside.")
     }
+}
+
+fun main(){
+    val a = Document(StringTag("ah", content = "coisas"))
+    print(a)
 }
