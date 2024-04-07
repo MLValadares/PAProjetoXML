@@ -9,6 +9,7 @@ class Document(
 interface Tag {
     val name: String
     val attributes: MutableMap<String, String> //possivel problema, por mais abstrato?
+    var parent: CompositeTag?
 
     fun addTag(tag: Tag)
     fun removeTag(tag: Tag)
@@ -47,8 +48,13 @@ interface Tag {
 data class CompositeTag(
     override val name: String,
     override val attributes: MutableMap<String, String> = mutableMapOf(),
-    val children: MutableList<Tag> = mutableListOf() // Mundei para mutable, pode ser problemaa
+    val children: MutableList<Tag> = mutableListOf(), // Mundei para mutable, pode ser problema
+    override var parent: CompositeTag? = null
 ) : Tag{
+
+    init {
+        parent?.children?.add(this)
+    }
 
     override fun addTag(tag: Tag) {
         children.add(tag)
@@ -68,7 +74,8 @@ data class CompositeTag(
 data class StringTag(
     override val name: String,
     override val attributes: MutableMap<String, String> = mutableMapOf(),
-    val content : String //caso não tenha nada, é CompositeTag
+    val content : String, //caso não tenha nada, é CompositeTag
+    override var parent: CompositeTag? = null
 ) : Tag{
     override fun addTag(tag: Tag) {
         throw UnsupportedOperationException("StringTag cannot have tag inside.")

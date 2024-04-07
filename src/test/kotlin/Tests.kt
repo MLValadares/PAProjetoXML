@@ -103,4 +103,14 @@ class Tests {
         compositeTag.removeAttribute("id")
         assertFalse(compositeTag.attributes.containsKey("id"))
     }
+
+    //check parent
+
+    //check children
+
+    //pretty print
+
+    //escrita para ficheiro????
+
+    //visitor
 }
