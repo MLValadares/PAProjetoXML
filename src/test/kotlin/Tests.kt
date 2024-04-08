@@ -164,11 +164,17 @@ class Tests {
     //escrita para ficheiro
     @Test
     fun test11(){
-        writeDocumentToFile(document1, "document.xml")
+        document1.writeToFile("document.xml")
         val file = File("document.xml")
         assertTrue(file.exists())
         assertEquals(document1.toString(), file.readText())
     }
 
     //visitor
+    //adicionar atributos globalmente
+    //renomeação de entidades globalmente
+    //renomeação de atributos globalmente
+    //remoção de entidades globalmente
+    //remoção de atributos globalmente
+    //X-Path
 }

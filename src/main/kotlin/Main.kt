@@ -4,15 +4,14 @@ class Document(val rootTag: Tag){
     override fun toString(): String {
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n${rootTag.toString()}"
     }
-}
-
-fun writeDocumentToFile(document: Document, filePath: String) {
-    val xmlString = document.toString()
-    try { //completar testes
-        File(filePath).writeText(xmlString)
-        println("XML document written to file: $filePath")
-    } catch (e: Exception) {
-        println("Error writing XML document to file: $e")
+    fun writeToFile(filePath: String) {
+        val xmlString = this.toString()
+        try { //completar testes
+            File(filePath).writeText(xmlString)
+            println("XML document written to file: $filePath")
+        } catch (e: Exception) {
+            println("Error writing XML document to file: $e")
+        }
     }
 }
 
