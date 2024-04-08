@@ -1,8 +1,6 @@
 import java.io.File
 
-class Document(
-    val rootTag: Tag
-){
+class Document(val rootTag: Tag){
     override fun toString(): String {
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n${rootTag.toString()}"
     }
@@ -10,8 +8,12 @@ class Document(
 
 fun writeDocumentToFile(document: Document, filePath: String) {
     val xmlString = document.toString()
-    File(filePath).writeText(xmlString)
-    println("XML document written to file: $filePath")
+    try { //completar testes
+        File(filePath).writeText(xmlString)
+        println("XML document written to file: $filePath")
+    } catch (e: Exception) {
+        println("Error writing XML document to file: $e")
+    }
 }
 
 interface Tag {
@@ -49,7 +51,7 @@ interface Tag {
             sb.append(">$content</$name>\n")
         } else {
             sb.append("/>\n")
-        }//falta adicionar para o caso em que não tem nada la dentro
+        }
     }
 }
 
