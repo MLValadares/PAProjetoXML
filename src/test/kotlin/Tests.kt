@@ -17,6 +17,21 @@ class Tests {
             )
         )
     )
+    val document1 = Document(
+        CompositeTag(
+            "plano",
+            children = mutableListOf(
+                StringTag("curso", content = "Mestrado em Engenharia Informática"),
+                CompositeTag("fuc", mutableMapOf(("code" to "M4310")), mutableListOf(
+                    StringTag("nome", content = "Programação Avançada"),
+                    StringTag("ects", content = "6.0"),
+                    CompositeTag("avaliacao", children = mutableListOf(
+                        CompositeTag("componente", mutableMapOf(("nome" to "Quizzes"),("Projeto" to "80%")))
+                    ))
+                ))
+            )
+        )
+    )
 
     @Test
     fun test0(){
@@ -105,11 +120,28 @@ class Tests {
     }
 
     //check parent
+    @Test
+    fun test9() {
+        val html = CompositeTag("html")
+        val head = CompositeTag("head")
+        val body = CompositeTag("body")
+
+        html.addTag(head)
+        html.addTag(body)
+
+        assertEquals(html, head.parent)
+        assertEquals(html, body.parent)
+
+        val title = StringTag("title", content =  "Document Title")
+        head.addTag(title)
+
+        assertEquals(head, title.parent)
+    }
 
     //check children
 
     //pretty print
-
+        //falta adicionar para o caso em que não tem nada la dentro
     //escrita para ficheiro????
 
     //visitor

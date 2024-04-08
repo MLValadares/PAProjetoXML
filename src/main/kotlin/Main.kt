@@ -41,7 +41,7 @@ interface Tag {
             sb.append(">$content</$name>\n")
         } else {
             sb.append(" />\n")
-        }
+        }//falta adicionar para o caso em que não tem nada la dentro
     }
 }
 
@@ -58,6 +58,7 @@ data class CompositeTag(
 
     override fun addTag(tag: Tag) {
         children.add(tag)
+        tag.parent = this
     }
 
     override fun removeTag(tag: Tag) {
@@ -77,6 +78,10 @@ data class StringTag(
     val content : String, //caso não tenha nada, é CompositeTag
     override var parent: CompositeTag? = null
 ) : Tag{
+    init {
+        parent?.children?.add(this)
+    }
+
     override fun addTag(tag: Tag) {
         throw UnsupportedOperationException("StringTag cannot have tag inside.")
     }
@@ -90,28 +95,4 @@ data class StringTag(
         toString(sb, 0)
         return sb.toString()
     }
-}
-
-//fun main(){
-//    val a = Document(StringTag("ah", content = "coisas"))
-//    print(a)
-//}
-
-fun main() {
-    val document = Document(
-        CompositeTag("html").apply {
-            addTag(
-                CompositeTag("head").apply {
-                    addTag(StringTag("title", content = "Document Title"))
-                }
-            )
-            addTag(
-                CompositeTag("body").apply {
-                    addTag(StringTag("h1", content = "Hello, world!"))
-                    addTag(StringTag("p", content = "This is a paragraph."))
-                }
-            )
-        }
-    )
-    println(document)
 }
