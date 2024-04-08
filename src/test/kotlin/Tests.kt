@@ -7,7 +7,7 @@ import java.io.File
 //org.junit.jupiter:junit-jupiter:5.10.2
 class Tests {
 
-    val document = Document(
+    private val document = Document(
         CompositeTag(
             "plano",
             children = mutableListOf(
@@ -18,7 +18,7 @@ class Tests {
             )
         )
     )
-    val document1 = Document(
+    private val document1 = Document(
         CompositeTag(
             "plano",
             children = mutableListOf(
@@ -171,8 +171,33 @@ class Tests {
     }
 
     //visitor
+
     //adicionar atributos globalmente
+    @Test
+    fun test12() {
+        val rootTag = CompositeTag("root")
+        val childTag = CompositeTag("child")
+        rootTag.addTag(childTag)
+        val document = Document(rootTag)
+
+        document.addAttributes("child", "attributeKey", "attributeValue")
+
+        assertEquals("attributeValue", childTag.attributes["attributeKey"])
+    }
+
     //renomeação de entidades globalmente
+    @Test
+    fun test13() {
+        val rootTag = CompositeTag("root")
+        val childTag = CompositeTag("child")
+        rootTag.addTag(childTag)
+        val document = Document(rootTag)
+
+        document.renameEntities("child", "newChild")
+
+        assertEquals("newChild", childTag.name)
+    }
+
     //renomeação de atributos globalmente
     //remoção de entidades globalmente
     //remoção de atributos globalmente

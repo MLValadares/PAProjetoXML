@@ -1,5 +1,10 @@
 import java.io.File
 
+//é preciso???
+//interface Visitor {
+//    fun visit(e: Tag): Boolean
+//}
+
 class Document(val rootTag: Tag){
     override fun toString(): String {
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n${rootTag.toString()}"
@@ -13,10 +18,29 @@ class Document(val rootTag: Tag){
             println("Error writing XML document to file: $e")
         }
     }
+    fun addAttributes(tagName: String, attributeKey: String, attributeValue: String) {
+        val visitor: (Tag) -> Boolean = { tag ->
+            if (tag.name == tagName) {
+                tag.addAttribute(attributeKey, attributeValue)
+            }
+            true
+        }
+        rootTag.accept(visitor)
+    }
+
+    fun renameEntities(oldName: String, newName: String) {
+        val visitor: (Tag) -> Boolean = { tag ->
+            if (tag.name == oldName) {
+                tag.rename(newName)
+            }
+            true
+        }
+        rootTag.accept(visitor)
+    }
 }
 
 interface Tag {
-    val name: String
+    var name: String
     val attributes: MutableMap<String, String> //possivel problema, por mais abstrato?
     var parent: CompositeTag?
 
@@ -52,10 +76,17 @@ interface Tag {
             sb.append("/>\n")
         }
     }
+    fun accept(visitor: (Tag) -> Boolean) {
+        visitor(this)
+    }
+
+    fun rename(newName: String) {
+        this.name = newName
+    }
 }
 
 data class CompositeTag(
-    override val name: String,
+    override var name: String,
     override val attributes: MutableMap<String, String> = mutableMapOf(),
     val children: MutableList<Tag> = mutableListOf(), // Mundei para mutable, pode ser problema
     override var parent: CompositeTag? = null
@@ -69,20 +100,24 @@ data class CompositeTag(
         children.add(tag)
         tag.parent = this
     }
-
     override fun removeTag(tag: Tag) {
         children.remove(tag)
     }
-
     override fun toString(): String {
         val sb = StringBuilder()
         toString(sb, 0)
         return sb.toString()
     }
+    override fun accept(visitor: (Tag) -> Boolean) {
+        if (visitor(this))
+            children.forEach {
+                it.accept(visitor)
+            }
+    }
 }
 
 data class StringTag(
-    override val name: String,
+    override var name: String,
     override val attributes: MutableMap<String, String> = mutableMapOf(),
     val content : String, //caso não tenha nada, é CompositeTag
     override var parent: CompositeTag? = null
