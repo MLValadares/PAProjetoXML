@@ -1,9 +1,17 @@
+import java.io.File
+
 class Document(
     val rootTag: Tag
 ){
     override fun toString(): String {
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n${rootTag.toString()}"
     }
+}
+
+fun writeDocumentToFile(document: Document, filePath: String) {
+    val xmlString = document.toString()
+    File(filePath).writeText(xmlString)
+    println("XML document written to file: $filePath")
 }
 
 interface Tag {
@@ -40,7 +48,7 @@ interface Tag {
         } else if (this is StringTag) {
             sb.append(">$content</$name>\n")
         } else {
-            sb.append(" />\n")
+            sb.append("/>\n")
         }//falta adicionar para o caso em que não tem nada la dentro
     }
 }

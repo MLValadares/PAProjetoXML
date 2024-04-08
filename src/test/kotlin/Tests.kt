@@ -1,5 +1,6 @@
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import java.io.File
 
 
 //Adicionar dependência JUnit
@@ -141,8 +142,33 @@ class Tests {
     //check children
 
     //pretty print
-        //falta adicionar para o caso em que não tem nada la dentro
-    //escrita para ficheiro????
+    @Test
+    fun test10(){
+        val expected = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <plano>
+              <curso>Mestrado em Engenharia Informática</curso>
+              <fuc code="M4310">
+                <nome>Programação Avançada</nome>
+                <ects>6.0</ects>
+                <avaliacao>
+                  <componente nome="Quizzes" Projeto="80%"/>
+                </avaliacao>
+              </fuc>
+            </plano>
+            
+        """.trimIndent()
+        val output = document1.toString()
+        assertEquals(expected, output)
+    }
+    //escrita para ficheiro
+    @Test
+    fun test11(){
+        writeDocumentToFile(document1, "document.xml")
+        val file = File("document.xml")
+        assertTrue(file.exists())
+        assertEquals(document1.toString(), file.readText())
+    }
 
     //visitor
 }
