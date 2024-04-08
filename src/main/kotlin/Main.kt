@@ -37,6 +37,36 @@ class Document(val rootTag: Tag){
         }
         rootTag.accept(visitor)
     }
+    fun renameAttributes(tagName: String, oldKey: String, newKey: String) {
+        val visitor: (Tag) -> Boolean = { tag ->
+            if (tag.name == tagName && tag.attributes.containsKey(oldKey)) {
+                val value = tag.attributes.remove(oldKey)
+                if (value != null) {
+                    tag.attributes[newKey] = value
+                }
+            }
+            true
+        }
+        rootTag.accept(visitor)
+    }
+    fun removeEntities(tagName: String) {
+        val visitor: (Tag) -> Boolean = { tag ->
+            if (tag.name == tagName) {
+                tag.parent?.removeTag(tag)
+            }
+            true
+        }
+        rootTag.accept(visitor)
+    }
+    fun removeAttributes(tagName: String, attributeKey: String) {
+        val visitor: (Tag) -> Boolean = { tag ->
+            if (tag.name == tagName && tag.attributes.containsKey(attributeKey)) {
+                tag.removeAttribute(attributeKey)
+            }
+            true
+        }
+        rootTag.accept(visitor)
+    }
 }
 
 interface Tag {
