@@ -34,6 +34,58 @@ class Tests {
         )
     )
 
+
+    @Test
+    fun addToParentTest() {
+        val parentTag = CompositeTag("parent")
+        val childTag = CompositeTag("child")
+
+        childTag.addToParent(parentTag)
+
+        assertTrue(parentTag.children.contains(childTag))
+        assertEquals(parentTag, childTag.parent)
+    }
+    @Test
+    fun removeFromParentTest() {
+        val parentTag = CompositeTag("parent")
+        val childTag = CompositeTag("child")
+
+        childTag.addToParent(parentTag)
+        assertTrue(parentTag.children.contains(childTag))
+        assertEquals(parentTag, childTag.parent)
+
+        childTag.removeFromParent()
+        assertFalse(parentTag.children.contains(childTag))
+        assertNull(childTag.parent)
+    }
+    @Test
+    fun CompositeTagNotEmptyTest() {
+        assertThrows(IllegalArgumentException::class.java) {
+            CompositeTag(" ")
+        }
+    }
+
+//    @Test
+//    fun CompositeTagRegex() {
+//        assertThrows(IllegalArgumentException::class.java) {
+//            CompositeTag("invalid-name!")
+//        }
+//    }
+
+    @Test
+    fun StringTagNotEmptyTest() {
+        assertThrows(IllegalArgumentException::class.java) {
+            StringTag(" ", content = "content")
+        }
+    }
+
+//    @Test
+//    fun StringTagRegex() {
+//        assertThrows(IllegalArgumentException::class.java) {
+//            StringTag("invalid-name!", content = "content")
+//        }
+//    }
+
     @Test
     fun test0(){
         assertTrue(true)
@@ -56,49 +108,53 @@ class Tests {
     //addEntity
 
     @Test
-    fun test3(){
+    fun addTagTest(){
         val parentTag = CompositeTag("parent")
-        val childTag = StringTag("child", content = "Child content")
-        parentTag.addTag(childTag)
+        val childTag1 = StringTag("child1", content = "Child1 content")
+        val childTag2 = StringTag("child2", content = "Child2 content")
+        parentTag.addTag(childTag1)
 
         assertEquals(1, parentTag.children.size)
-        assertEquals(childTag, parentTag.children[0])
-    }
+        assertEquals(childTag1, parentTag.children[0])
 
-//    @Test
-//    fun test4() {
-//        val stringTag = StringTag("string", content = "String content")
-//        val childTag = CompositeTag("child")
-//        assertFailsWith<UnsupportedOperationException>(stringTag.addTag(childTag))
-//    }
+        parentTag.addTag(childTag2)
+
+        assertEquals(2, parentTag.children.size)
+        assertEquals(childTag1, parentTag.children[0])
+        assertEquals(childTag2, parentTag.children[1])
+    }
 
     //removeEntity
     @Test
-    fun test5() {
+    fun removeTagTest() {
         val parentTag = CompositeTag("parent")
-        val childTag = StringTag("child", content = "Child content")
-        parentTag.addTag(childTag)
+        val childTag1 = StringTag("child1", content = "Child1 content")
+        val childTag2 = StringTag("child2", content = "Child2 content")
+        parentTag.addTag(childTag1)
+        parentTag.addTag(childTag2)
 
-        assertTrue(parentTag.children.contains(childTag))
+        assertTrue(parentTag.children.contains(childTag1))
+        assertTrue(parentTag.children.contains(childTag2))
 
-        parentTag.removeTag(childTag)
+        parentTag.removeTag(childTag1)
 
-        assertFalse(parentTag.children.contains(childTag))
+        assertFalse(parentTag.children.contains(childTag1))
+
+        parentTag.removeTag(childTag2)
+        assertFalse(parentTag.children.contains(childTag2))
     }
-
-//    @Test
-//    fun test6() {
-//        val stringTag = StringTag("string", content = "String content")
-//        val childTag = CompositeTag("child")
-//        assertFailsWith<UnsupportedOperationException>(stringTag.removeTag(childTag))
-//    }
 
     //addAttribute
     @Test
-    fun test6(){
-        val compositeTag = CompositeTag("div")
-        compositeTag.addAttribute("id", "container")
-        assertEquals("container", compositeTag.attributes["id"])
+    fun addAttributeTest(){
+        val compositeTag = CompositeTag("teste")
+
+        compositeTag.addAttribute("atributo", "novo")
+        compositeTag.addAttribute("atributos", "velho")
+
+        assertEquals("novo", compositeTag.attributes["atributo"])
+        assertNotEquals("velho", compositeTag.attributes["atributo"])
+
     }
 
 
@@ -122,7 +178,7 @@ class Tests {
 
     //check parent
     @Test
-    fun test9() {
+    fun checkParentTest() {
         val html = CompositeTag("html")
         val head = CompositeTag("head")
         val body = CompositeTag("body")
@@ -138,8 +194,6 @@ class Tests {
 
         assertEquals(head, title.parent)
     }
-
-    //check children
 
     //pretty print
     @Test
@@ -174,48 +228,71 @@ class Tests {
 
     //adicionar atributos globalmente
     @Test
-    fun test12() {
+    fun addAttributesTest() {
         val rootTag = CompositeTag("root")
-        val childTag = CompositeTag("child")
-        rootTag.addTag(childTag)
+        val childTag1 = CompositeTag("child")
+        val childTag2 = CompositeTag("child")
+        val grandChildTag = CompositeTag("grandChild")
+
+        rootTag.addTag(childTag1)
+        rootTag.addTag(childTag2)
+
+        childTag1.addTag(grandChildTag)
+
         val document = Document(rootTag)
 
-        document.addAttributes("child", "attributeKey", "attributeValue")
+        document.addAttributes("child", "attributeKey1", "attributeValue1")
+        document.addAttributes("child", "attributeKey2", "attributeValue2")
+        document.addAttributes("grandChild", "attributeKey3", "attributeValue3")
+        document.addAttributes("grandChild", "attributeKey4", "attributeValue4")
 
-        assertEquals("attributeValue", childTag.attributes["attributeKey"])
+        assertEquals("attributeValue1", childTag1.attributes["attributeKey1"])
+        assertEquals("attributeValue1", childTag2.attributes["attributeKey1"])
+        assertEquals("attributeValue2", childTag1.attributes["attributeKey2"])
+        assertEquals("attributeValue2", childTag2.attributes["attributeKey2"])
+        assertEquals("attributeValue3", grandChildTag.attributes["attributeKey3"])
+        assertEquals("attributeValue4", grandChildTag.attributes["attributeKey4"])
     }
 
     //renomeação de entidades globalmente
     @Test
-    fun test13() {
+    fun renameTagsTest() {
         val rootTag = CompositeTag("root")
-        val childTag = CompositeTag("child")
-        rootTag.addTag(childTag)
+        val childTag1 = CompositeTag("child")
+        val childTag2 = CompositeTag("child")
+        rootTag.addTag(childTag1)
+        rootTag.addTag(childTag2)
         val document = Document(rootTag)
 
         document.renameTags("child", "newChild")
 
-        assertEquals("newChild", childTag.name)
+        assertEquals("newChild", childTag1.name)
+        assertEquals("newChild", childTag2.name)
     }
 
     //renomeação de atributos globalmente
     @Test
-    fun test14() {
+    fun renameAttributesTest() {
         val rootTag = CompositeTag("root")
-        val childTag = CompositeTag("child")
-        childTag.addAttribute("oldAttribute", "value")
-        rootTag.addTag(childTag)
+        val childTag1 = CompositeTag("child")
+        val childTag2 = CompositeTag("child")
+        childTag1.addAttribute("oldAttribute", "value1")
+        childTag2.addAttribute("oldAttribute", "value2")
+        rootTag.addTag(childTag1)
+        rootTag.addTag(childTag2)
         val document = Document(rootTag)
 
         document.renameAttributes("child", "oldAttribute", "newAttribute")
 
-        assertFalse(childTag.attributes.containsKey("oldAttribute"))
-        assertEquals("value", childTag.attributes["newAttribute"])
+        assertFalse(childTag1.attributes.containsKey("oldAttribute"))
+        assertEquals("value1", childTag1.attributes["newAttribute"])
+        assertFalse(childTag2.attributes.containsKey("oldAttribute"))
+        assertEquals("value2", childTag2.attributes["newAttribute"])
     }
 
     //remoção de entidades globalmente
     @Test
-    fun test15() {
+    fun removeTagsTest() {
         val rootTag = CompositeTag("root")
         val childTag1 = CompositeTag("child")
         val childTag2 = CompositeTag("child")
@@ -230,16 +307,22 @@ class Tests {
     }
     //remoção de atributos globalmente
     @Test
-    fun test16() {
+    fun removeAttributesTest() {
         val rootTag = CompositeTag("root")
         val childTag1 = CompositeTag("child")
-        childTag1.addAttribute("attributeToRemove", "value")
+        val childTag2 = CompositeTag("child")
+        childTag1.addAttribute("oldAttribute", "value1")
+        childTag2.addAttribute("oldAttribute", "value2")
         rootTag.addTag(childTag1)
+        rootTag.addTag(childTag2)
         val document = Document(rootTag)
 
-        document.removeAttributes("child", "attributeToRemove")
+        document.removeAttributes("child", "oldAttribute")
 
-        assertFalse(childTag1.attributes.containsKey("attributeToRemove"))
+        assertFalse(childTag1.attributes.containsKey("oldAttribute"))
+        assertFalse(childTag2.attributes.containsKey("oldAttribute"))
     }
+
+
     //X-Path
 }

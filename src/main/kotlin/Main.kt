@@ -64,6 +64,51 @@ class Document(val rootTag: Tag){
         }
         rootTag.accept(visitor)
     }
+
+    fun toXpath(expression: String): List<Tag> {
+        val xpath = expression.split("/")
+        val list = mutableListOf<Tag>()
+        val visitor: (Tag) -> Boolean = { tag ->
+            if (tag.name == xpath[0]) {
+                list.add(tag)
+                println(tag)
+            }
+            true
+        }
+        rootTag.accept(visitor)
+        return list
+    }
+
+
+    fun toXPath(expression: String): List<Tag> {
+        val xpath = expression.split("/")
+        val list = mutableListOf<Tag>()
+
+        // Recursive function to traverse the XML tree
+        fun traverse(tag: Tag, index: Int) {
+            // Base case: Reached the end of the XPath expression
+            if (index == xpath.size) {
+                list.add(tag)
+                return
+            }
+
+            // Check if the current tag matches the XPath part at the current index
+            if (tag.name == xpath[index]) {
+                // Recursively traverse child tags
+                (tag as CompositeTag).children.forEach { child ->
+                    traverse(child, index + 1)
+                }
+            }
+        }
+
+        // Recursive function to traverse the XML tree
+        val visitor: (Tag) -> Boolean = { tag ->
+            traverse(tag, 0)
+            true
+        }
+        rootTag.accept(visitor)
+        return list
+    }
 }
 
 interface Tag {
@@ -74,9 +119,10 @@ interface Tag {
 
     fun addToParent(parent: CompositeTag) {//testes
         parent.addTag(this)
-    }  
+    }
     fun removeFromParent() {//testes
         parent?.removeTag(this)
+        parent = null
     }
     fun addAttribute(key: String, value: String) {
         (attributes as MutableMap)[key] = value
@@ -134,6 +180,7 @@ data class CompositeTag(
 
     init {
         require(name.isNotBlank()) { "Nome não deve ficar em branco" } //fazer mais
+//        require(name.matches(Regex("^[a-zA-Z0-9]+$"))) { "Nome deve conter apenas letras e números" }
         parent?.children?.add(this)
     }
     //override
@@ -165,6 +212,7 @@ data class StringTag(
 ) : Tag{
     init {
         require(name.isNotBlank()) { "Nome não deve ficar em branco" } //fazer mais //adicionr regex
+//        require(name.matches(Regex("^[a-zA-Z0-9]+$"))) { "Nome deve conter apenas letras e números" }
         parent?.children?.add(this)
     }
 
@@ -174,4 +222,23 @@ data class StringTag(
         toString(sb, 0)
         return sb.toString()
     }
+}
+
+fun main(){
+    val document1 = Document(
+        CompositeTag(
+            "plano",
+            children = mutableListOf(
+                StringTag("curso", content = "Mestrado em Engenharia Informática"),
+                CompositeTag("fuc", mutableMapOf(("code" to "M4310")), mutableListOf(
+                    StringTag("nome", content = "Programação Avançada"),
+                    StringTag("ects", content = "6.0"),
+                    CompositeTag("avaliacao", children = mutableListOf(
+                        CompositeTag("componente", mutableMapOf(("nome" to "Quizzes"),("Projeto" to "80%")))
+                    ))
+                ))
+            )
+        )
+    )
+    document1.toXPath("plano/fuc/nome")
 }
