@@ -1,10 +1,5 @@
 import java.io.File
 
-//é preciso???
-//interface Visitor {
-//    fun visit(e: Tag): Boolean
-//}
-
 class Document(val rootTag: Tag){
     override fun toString(): String {
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n${rootTag.toString()}"
@@ -40,10 +35,7 @@ class Document(val rootTag: Tag){
     fun renameAttributes(tagName: String, oldKey: String, newKey: String) {
         val visitor: (Tag) -> Boolean = { tag ->
             if (tag.name == tagName && tag.attributes.containsKey(oldKey)) {
-                val value = tag.attributes.remove(oldKey)
-                if (value != null) {
-                    tag.attributes[newKey] = value
-                }
+                tag.renameAttribute(oldKey, newKey)
             }
             true
         }
@@ -76,22 +68,33 @@ class Document(val rootTag: Tag){
 
 interface Tag {
     var name: String //o que fazer aqui?
-    val attributes: MutableMap<String, String> //possivel problema, por mais abstrato? //protected??
+    val attributes: Map<String, String> //possivel problema, por mais abstrato? //protected??
     var parent: CompositeTag?
 //remover do proprio do pai
 
-//    fun addTag(tag: Tag)
-//    fun removeTag(tag: Tag)
+    fun addToParent(parent: CompositeTag) {//testes
+        parent.addTag(this)
+    }  
+    fun removeFromParent() {//testes
+        parent?.removeTag(this)
+    }
     fun addAttribute(key: String, value: String) {
-        attributes[key] = value
+        (attributes as MutableMap)[key] = value
     }
 
     fun removeAttribute(key: String) {
-        attributes.remove(key)
+        (attributes as MutableMap).remove(key)
+    }
+
+    fun renameAttribute(oldKey: String, newKey: String) {
+        val value = (attributes as MutableMap).remove(oldKey)
+        if (value != null) {
+            (attributes as MutableMap)[newKey] = value
+        }
     }
 
     fun modifyAttribute(key: String, value: String) {
-        attributes[key] = value
+        (attributes as MutableMap)[key] = value
     }
 
     fun toString(sb: StringBuilder, depth: Int) {
@@ -161,17 +164,10 @@ data class StringTag(
     override var parent: CompositeTag? = null
 ) : Tag{
     init {
-        require(name.isNotBlank()) { "Nome não deve ficar em branco" } //fazer mais
+        require(name.isNotBlank()) { "Nome não deve ficar em branco" } //fazer mais //adicionr regex
         parent?.children?.add(this)
     }
 
-//    override fun addTag(tag: Tag) {
-//        throw UnsupportedOperationException("StringTag cannot have tag inside.")
-//    }
-//
-//    override fun removeTag(tag: Tag) {
-//        throw UnsupportedOperationException("StringTag cannot have tag inside.")
-//    }
 
     override fun toString(): String {
         val sb = StringBuilder()
