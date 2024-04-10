@@ -70,7 +70,7 @@ class Document(val rootTag: Tag){
 }
 
 interface Tag {
-    var name: String
+    var name: String //o que fazer aqui?
     val attributes: MutableMap<String, String> //possivel problema, por mais abstrato? //protected??
     var parent: CompositeTag?
 

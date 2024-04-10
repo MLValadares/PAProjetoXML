@@ -199,7 +199,47 @@ class Tests {
     }
 
     //renomeação de atributos globalmente
+    @Test
+    fun test14() {
+        val rootTag = CompositeTag("root")
+        val childTag = CompositeTag("child")
+        childTag.addAttribute("oldAttribute", "value")
+        rootTag.addTag(childTag)
+        val document = Document(rootTag)
+
+        document.renameAttributes("child", "oldAttribute", "newAttribute")
+
+        assertFalse(childTag.attributes.containsKey("oldAttribute"))
+        assertEquals("value", childTag.attributes["newAttribute"])
+    }
+
     //remoção de entidades globalmente
+    @Test
+    fun test15() {
+        val rootTag = CompositeTag("root")
+        val childTag1 = CompositeTag("child")
+        val childTag2 = CompositeTag("child")
+        rootTag.addTag(childTag1)
+        rootTag.addTag(childTag2)
+        val document = Document(rootTag)
+
+        document.removeEntities("child")
+
+        assertFalse(rootTag.children.contains(childTag1))
+        assertFalse(rootTag.children.contains(childTag2))
+    }
     //remoção de atributos globalmente
+    @Test
+    fun test16() {
+        val rootTag = CompositeTag("root")
+        val childTag1 = CompositeTag("child")
+        childTag1.addAttribute("attributeToRemove", "value")
+        rootTag.addTag(childTag1)
+        val document = Document(rootTag)
+
+        document.removeAttributes("child", "attributeToRemove")
+
+        assertFalse(childTag1.attributes.containsKey("attributeToRemove"))
+    }
     //X-Path
 }
