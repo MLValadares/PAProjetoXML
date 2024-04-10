@@ -28,7 +28,7 @@ class Document(val rootTag: Tag){
         rootTag.accept(visitor)
     }
 
-    fun renameEntities(oldName: String, newName: String) {
+    fun renameTags(oldName: String, newName: String) {
         val visitor: (Tag) -> Boolean = { tag ->
             if (tag.name == oldName) {
                 tag.rename(newName)
@@ -49,14 +49,19 @@ class Document(val rootTag: Tag){
         }
         rootTag.accept(visitor)
     }
-    fun removeEntities(tagName: String) {
+    fun removeTags(tagName: String) {
+        val list = mutableListOf<Tag>()
         val visitor: (Tag) -> Boolean = { tag ->
             if (tag.name == tagName) {
-                tag.parent?.removeTag(tag)
+//                tag.parent?.removeTag(tag)
+                list.add(tag)
             }
             true
         }
         rootTag.accept(visitor)
+        list.forEach {
+            it.parent?.removeTag(it)
+        }
     }
     fun removeAttributes(tagName: String, attributeKey: String) {
         val visitor: (Tag) -> Boolean = { tag ->
@@ -73,6 +78,7 @@ interface Tag {
     var name: String //o que fazer aqui?
     val attributes: MutableMap<String, String> //possivel problema, por mais abstrato? //protected??
     var parent: CompositeTag?
+//remover do proprio do pai
 
 //    fun addTag(tag: Tag)
 //    fun removeTag(tag: Tag)
@@ -155,6 +161,7 @@ data class StringTag(
     override var parent: CompositeTag? = null
 ) : Tag{
     init {
+        require(name.isNotBlank()) { "Nome não deve ficar em branco" } //fazer mais
         parent?.children?.add(this)
     }
 

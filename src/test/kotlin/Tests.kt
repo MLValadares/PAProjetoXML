@@ -193,7 +193,7 @@ class Tests {
         rootTag.addTag(childTag)
         val document = Document(rootTag)
 
-        document.renameEntities("child", "newChild")
+        document.renameTags("child", "newChild")
 
         assertEquals("newChild", childTag.name)
     }
@@ -223,7 +223,7 @@ class Tests {
         rootTag.addTag(childTag2)
         val document = Document(rootTag)
 
-        document.removeEntities("child")
+        document.removeTags("child")
 
         assertFalse(rootTag.children.contains(childTag1))
         assertFalse(rootTag.children.contains(childTag2))
