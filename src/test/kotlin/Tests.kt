@@ -7,7 +7,7 @@ import java.io.File
 //org.junit.jupiter:junit-jupiter:5.10.2
 class Tests {
 
-    val document = Document(
+    private val document = Document(
         CompositeTag(
             "plano",
             children = mutableListOf(
@@ -18,7 +18,7 @@ class Tests {
             )
         )
     )
-    val document1 = Document(
+    private val document1 = Document(
         CompositeTag(
             "plano",
             children = mutableListOf(
@@ -164,11 +164,82 @@ class Tests {
     //escrita para ficheiro
     @Test
     fun test11(){
-        writeDocumentToFile(document1, "document.xml")
+        document1.writeToFile("document.xml")
         val file = File("document.xml")
         assertTrue(file.exists())
         assertEquals(document1.toString(), file.readText())
     }
 
     //visitor
+
+    //adicionar atributos globalmente
+    @Test
+    fun test12() {
+        val rootTag = CompositeTag("root")
+        val childTag = CompositeTag("child")
+        rootTag.addTag(childTag)
+        val document = Document(rootTag)
+
+        document.addAttributes("child", "attributeKey", "attributeValue")
+
+        assertEquals("attributeValue", childTag.attributes["attributeKey"])
+    }
+
+    //renomeação de entidades globalmente
+    @Test
+    fun test13() {
+        val rootTag = CompositeTag("root")
+        val childTag = CompositeTag("child")
+        rootTag.addTag(childTag)
+        val document = Document(rootTag)
+
+        document.renameTags("child", "newChild")
+
+        assertEquals("newChild", childTag.name)
+    }
+
+    //renomeação de atributos globalmente
+    @Test
+    fun test14() {
+        val rootTag = CompositeTag("root")
+        val childTag = CompositeTag("child")
+        childTag.addAttribute("oldAttribute", "value")
+        rootTag.addTag(childTag)
+        val document = Document(rootTag)
+
+        document.renameAttributes("child", "oldAttribute", "newAttribute")
+
+        assertFalse(childTag.attributes.containsKey("oldAttribute"))
+        assertEquals("value", childTag.attributes["newAttribute"])
+    }
+
+    //remoção de entidades globalmente
+    @Test
+    fun test15() {
+        val rootTag = CompositeTag("root")
+        val childTag1 = CompositeTag("child")
+        val childTag2 = CompositeTag("child")
+        rootTag.addTag(childTag1)
+        rootTag.addTag(childTag2)
+        val document = Document(rootTag)
+
+        document.removeTags("child")
+
+        assertFalse(rootTag.children.contains(childTag1))
+        assertFalse(rootTag.children.contains(childTag2))
+    }
+    //remoção de atributos globalmente
+    @Test
+    fun test16() {
+        val rootTag = CompositeTag("root")
+        val childTag1 = CompositeTag("child")
+        childTag1.addAttribute("attributeToRemove", "value")
+        rootTag.addTag(childTag1)
+        val document = Document(rootTag)
+
+        document.removeAttributes("child", "attributeToRemove")
+
+        assertFalse(childTag1.attributes.containsKey("attributeToRemove"))
+    }
+    //X-Path
 }
