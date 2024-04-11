@@ -87,7 +87,7 @@ class Tests {
 //    }
 
     @Test
-    fun test0(){
+    fun inicioTest(){
         assertTrue(true)
     }
 
@@ -160,20 +160,31 @@ class Tests {
 
     //modifyAttribute
     @Test
-    fun test7(){
-        val compositeTag = CompositeTag("div")
-        compositeTag.addAttribute("class", "main")
-        compositeTag.modifyAttribute("class", "container")
-        assertEquals("container", compositeTag.attributes["class"])
+    fun modifyAttributeTest(){
+        val compositeTag = CompositeTag("teste")
+
+        compositeTag.addAttribute("atributo", "novo")
+
+        compositeTag.modifyAttribute("atributo", "novato")
+
+        assertEquals("novato", compositeTag.attributes["atributo"])
+        assertNotEquals("novo", compositeTag.attributes["atributo"])
     }
     //removeAttribute
     @Test
-    fun test8(){
-        val compositeTag = CompositeTag("div")
-        compositeTag.addAttribute("id", "container")
-        assertTrue(compositeTag.attributes.containsKey("id"))
-        compositeTag.removeAttribute("id")
-        assertFalse(compositeTag.attributes.containsKey("id"))
+    fun removeAttribute(){
+        val compositeTag = CompositeTag("teste")
+
+        compositeTag.addAttribute("atributo", "novo")
+        compositeTag.addAttribute("atributo2", "novo")
+
+        assertTrue(compositeTag.attributes.containsKey("atributo"))
+        assertTrue(compositeTag.attributes.containsKey("atributo2"))
+
+        compositeTag.removeAttribute("atributo")
+
+        assertFalse(compositeTag.attributes.containsKey("atributo"))
+        assertTrue(compositeTag.attributes.containsKey("atributo2"))
     }
 
     //check parent
@@ -182,16 +193,22 @@ class Tests {
         val html = CompositeTag("html")
         val head = CompositeTag("head")
         val body = CompositeTag("body")
+        val title = StringTag("title", content =  "Document Title")
 
         html.addTag(head)
         html.addTag(body)
+        head.addTag(title)
+
+        assertNotEquals(head.parent,null)
+        assertNotEquals(body.parent,null)
+        assertNotEquals(title.parent,null)
+        assertNotEquals(title.parent,body.parent)
+        assertNotEquals(title.parent,head.parent)
 
         assertEquals(html, head.parent)
         assertEquals(html, body.parent)
-
-        val title = StringTag("title", content =  "Document Title")
-        head.addTag(title)
-
+        assertEquals(body.parent, head.parent)
+        assertEquals(html.parent,null)
         assertEquals(head, title.parent)
     }
 
