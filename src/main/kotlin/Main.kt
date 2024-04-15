@@ -65,50 +65,55 @@ class Document(val rootTag: Tag){
         rootTag.accept(visitor)
     }
 
-    fun toXpath(expression: String): List<Tag> {
-        val xpath = expression.split("/")
-        val list = mutableListOf<Tag>()
-        val visitor: (Tag) -> Boolean = { tag ->
-            if (tag.name == xpath[0]) {
-                list.add(tag)
-                println(tag)
-            }
-            true
-        }
-        rootTag.accept(visitor)
-        return list
-    }
-
 
     fun toXPath(expression: String): List<Tag> {
         val xpath = expression.split("/")
-        val list = mutableListOf<Tag>()
+        val resultList = mutableListOf<Tag>()
 
-        // Recursive function to traverse the XML tree
-        fun traverse(tag: Tag, index: Int) {
-            // Base case: Reached the end of the XPath expression
-            if (index == xpath.size) {
-                list.add(tag)
-                return
+        fun traverse(tag: Tag, levels: List<String>): Boolean {
+            if (levels.isEmpty()) {
+                // If we've reached the end of the expression, add the tag to the result list
+                resultList.add(tag)
+                return true
             }
 
-            // Check if the current tag matches the XPath part at the current index
-            if (tag.name == xpath[index]) {
-                // Recursively traverse child tags
-                (tag as CompositeTag).children.forEach { child ->
-                    traverse(child, index + 1)
+            val currentLevel = levels.first()
+            val remainingLevels = levels.drop(1)
+
+            // Check if the current tag is a CompositeTag and matches the current level
+            if (tag is CompositeTag && tag.name == currentLevel) {
+                // Check if the current level is "nome" and it has children
+                if (currentLevel == "nome" && tag.children.isNotEmpty()) {
+                    // Recursively traverse all children
+                    for (child in tag.children) {
+                        traverse(child, remainingLevels)
+                    }
+                    return true // Found "nome" with children, stop traversal
                 }
+
+                // Continue traversing children
+                for (child in tag.children) {
+                    traverse(child, remainingLevels)
+                }
+            } else if (tag is StringTag && tag.name == currentLevel) {
+                // If the current tag is a StringTag and matches the current level, add it to the result list
+                resultList.add(tag)
             }
+
+            // Continue traversal
+            return false
         }
 
-        // Recursive function to traverse the XML tree
-        val visitor: (Tag) -> Boolean = { tag ->
-            traverse(tag, 0)
-            true
+        // Start traversal from the root tag
+        traverse(rootTag, xpath)
+        resultList.forEachIndexed { index, value ->
+            println("$value")
         }
-        rootTag.accept(visitor)
-        return list
+        return resultList
     }
+
+
+
 }
 
 interface Tag {
@@ -240,5 +245,5 @@ fun main(){
             )
         )
     )
-    document1.toXPath("plano/fuc/nome")
+    document1.toXPath("plano/fuc/ects")
 }
