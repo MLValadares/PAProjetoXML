@@ -342,4 +342,9 @@ class Tests {
 
 
     //X-Path
+    @Test
+    fun toXPathTest() {
+        val res = document1.toXPath("plano/fuc/ects")
+        assertEquals(1, res.size)
+    }
 }

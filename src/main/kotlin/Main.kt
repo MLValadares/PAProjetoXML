@@ -106,9 +106,9 @@ class Document(val rootTag: Tag){
 
         // Start traversal from the root tag
         traverse(rootTag, xpath)
-        resultList.forEachIndexed { index, value ->
-            println("$value")
-        }
+//        resultList.forEachIndexed { index, value ->
+//            println("$value")
+//        }
         return resultList
     }
 
