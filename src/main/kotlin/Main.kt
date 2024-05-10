@@ -130,6 +130,7 @@ interface Tag {
         parent = null
     }
     fun addAttribute(key: String, value: String) {
+        require(key.isNotBlank()) { "Attribute name cannot be blank" }
         (attributes as MutableMap)[key] = value
     }
 
@@ -186,6 +187,7 @@ data class CompositeTag(
     init {
         require(name.isNotBlank()) { "Nome não deve ficar em branco" } //fazer mais
 //        require(name.matches(Regex("^[a-zA-Z0-9]+$"))) { "Nome deve conter apenas letras e números" }
+        require(attributes.keys.none { it.isBlank() }) { "Attribute name cannot be blank" }
         parent?.children?.add(this)
     }
     //override
@@ -218,6 +220,7 @@ data class StringTag(
     init {
         require(name.isNotBlank()) { "Nome não deve ficar em branco" } //fazer mais //adicionr regex
 //        require(name.matches(Regex("^[a-zA-Z0-9]+$"))) { "Nome deve conter apenas letras e números" }
+        require(attributes.keys.none { it.isBlank() }) { "Attribute name cannot be blank" }
         parent?.children?.add(this)
     }
 

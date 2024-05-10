@@ -347,4 +347,33 @@ class Tests {
         val res = document1.toXPath("plano/fuc/ects")
         assertEquals(1, res.size)
     }
+
+    @Test
+    fun addAttributeThrowException() {
+        val tag = CompositeTag("test")
+
+        val exception = assertThrows(IllegalArgumentException::class.java) {
+            tag.addAttribute("", "value")
+        }
+
+        assertEquals("Attribute name cannot be blank", exception.message)
+    }
+
+    @Test
+    fun compositeTagThrowException() {
+        val exception = assertThrows(IllegalArgumentException::class.java) {
+            CompositeTag("test", mutableMapOf(Pair("", "value")))
+        }
+
+        assertEquals("Attribute name cannot be blank", exception.message)
+    }
+
+    @Test
+    fun stringTagThrowException() {
+        val exception = assertThrows(IllegalArgumentException::class.java) {
+            StringTag("test", mutableMapOf(Pair("", "value")), "content")
+        }
+
+        assertEquals("Attribute name cannot be blank", exception.message)
+    }
 }
