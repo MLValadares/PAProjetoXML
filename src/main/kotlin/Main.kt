@@ -65,56 +65,25 @@ class Document(val rootTag: Tag){
         rootTag.accept(visitor)
     }
 
-
     fun toXPath(expression: String): List<Tag> {
-        val xpath = expression.split("/")
-        val resultList = mutableListOf<Tag>()
+        val expressionParts = expression.split('/')
+        var currentTags: List<Tag> = listOf(rootTag)
 
-        fun traverse(tag: Tag, levels: List<String>): Boolean {
-            if (levels.isEmpty()) {
-                // If we've reached the end of the expression, add the tag to the result list
-                resultList.add(tag)
-                return true
-            }
-
-            val currentLevel = levels.first()
-            val remainingLevels = levels.drop(1)
-
-            // Check if the current tag is a CompositeTag and matches the current level
-            if (tag is CompositeTag && tag.name == currentLevel) {
-                // Check if the current level is "nome" and it has children
-                if (currentLevel == "nome" && tag.children.isNotEmpty()) {
-                    // Recursively traverse all children
-                    for (child in tag.children) {
-                        traverse(child, remainingLevels)
-                    }
-                    return true // Found "nome" with children, stop traversal
+        for (part in expressionParts) {
+            currentTags = currentTags.flatMap { tag ->
+                when (tag) {
+                    is CompositeTag -> tag.children.filter { it.name == part }
+                    else -> emptyList()
                 }
-
-                // Continue traversing children
-                for (child in tag.children) {
-                    traverse(child, remainingLevels)
-                }
-            } else if (tag is StringTag && tag.name == currentLevel) {
-                // If the current tag is a StringTag and matches the current level, add it to the result list
-                resultList.add(tag)
             }
-
-            // Continue traversal
-            return false
         }
 
-        // Start traversal from the root tag
-        traverse(rootTag, xpath)
-//        resultList.forEachIndexed { index, value ->
-//            println("$value")
-//        }
-        return resultList
+        return currentTags
     }
 
-
-
 }
+
+
 
 interface Tag {
     var name: String //o que fazer aqui?
@@ -232,21 +201,34 @@ data class StringTag(
     }
 }
 
+annotation class TagName(val name: String)
+annotation class Attribute(val name: String, val value: String)
+
 fun main(){
-    val document1 = Document(
+    val document2 = Document(
         CompositeTag(
             "plano",
             children = mutableListOf(
                 StringTag("curso", content = "Mestrado em Engenharia Informática"),
-                CompositeTag("fuc", mutableMapOf(("code" to "M4310")), mutableListOf(
+                CompositeTag("fuc", mutableMapOf(("codigo" to "M4310")), mutableListOf(
                     StringTag("nome", content = "Programação Avançada"),
                     StringTag("ects", content = "6.0"),
                     CompositeTag("avaliacao", children = mutableListOf(
-                        CompositeTag("componente", mutableMapOf(("nome" to "Quizzes"),("Projeto" to "80%")))
+                        CompositeTag("componente", mutableMapOf(("nome" to "Quizzes"), ("peso" to "20%"))),
+                        CompositeTag("componente", mutableMapOf(("nome" to "Projeto"), ("peso" to "80%")))
+                    ))
+                )),
+                CompositeTag("fuc", mutableMapOf(("codigo" to "03782")), mutableListOf(
+                    StringTag("nome", content = "Dissertação"),
+                    StringTag("ects", content = "42.0"),
+                    CompositeTag("avaliacao", children = mutableListOf(
+                        CompositeTag("componente", mutableMapOf(("nome" to "Dissertação"), ("peso" to "60%"))),
+                        CompositeTag("componente", mutableMapOf(("nome" to "Apresentação"), ("peso" to "20%"))),
+                        CompositeTag("componente", mutableMapOf(("nome" to "Discussão"), ("peso" to "20%")))
                     ))
                 ))
             )
         )
     )
-    document1.toXPath("plano/fuc/ects")
+    print(document2.toXPath("fuc/avaliacao/componente"))
 }
