@@ -34,6 +34,32 @@ class Tests {
         )
     )
 
+    private val document2 = Document(
+        CompositeTag(
+            "plano",
+            children = mutableListOf(
+                StringTag("curso", content = "Mestrado em Engenharia Informática"),
+                CompositeTag("fuc", mutableMapOf(("codigo" to "M4310")), mutableListOf(
+                    StringTag("nome", content = "Programação Avançada"),
+                    StringTag("ects", content = "6.0"),
+                    CompositeTag("avaliacao", children = mutableListOf(
+                        CompositeTag("componente", mutableMapOf(("nome" to "Quizzes"), ("peso" to "20%"))),
+                        CompositeTag("componente", mutableMapOf(("nome" to "Projeto"), ("peso" to "80%")))
+                    ))
+                )),
+                CompositeTag("fuc", mutableMapOf(("codigo" to "03782")), mutableListOf(
+                    StringTag("nome", content = "Dissertação"),
+                    StringTag("ects", content = "42.0"),
+                    CompositeTag("avaliacao", children = mutableListOf(
+                        CompositeTag("componente", mutableMapOf(("nome" to "Dissertação"), ("peso" to "60%"))),
+                        CompositeTag("componente", mutableMapOf(("nome" to "Apresentação"), ("peso" to "20%"))),
+                        CompositeTag("componente", mutableMapOf(("nome" to "Discussão"), ("peso" to "20%")))
+                    ))
+                ))
+            )
+        )
+    )
+
 
     @Test
     fun addToParentTest() {
@@ -342,10 +368,22 @@ class Tests {
 
 
     //X-Path
+//    @Test
+//    fun toXPathTest() {
+//        val res = document1.toXPath("plano/fuc/ects")
+//        assertEquals(1, res.size)
+//    }
     @Test
     fun toXPathTest() {
-        val res = document1.toXPath("plano/fuc/ects")
-        assertEquals(1, res.size)
+        val res = document2.toXPath("fuc/avaliacao/componente")
+        assertEquals(5, res.size)
+
+        // Check if the tag names match the expected value
+        assertEquals("componente", (res[0] as? CompositeTag)?.name)
+        assertEquals("componente", (res[1] as? CompositeTag)?.name)
+        assertEquals("componente", (res[2] as? CompositeTag)?.name)
+        assertEquals("componente", (res[3] as? CompositeTag)?.name)
+        assertEquals("componente", (res[4] as? CompositeTag)?.name)
     }
 
     @Test

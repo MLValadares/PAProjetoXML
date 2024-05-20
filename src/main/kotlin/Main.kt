@@ -201,8 +201,6 @@ data class StringTag(
     }
 }
 
-annotation class TagName(val name: String)
-annotation class Attribute(val name: String, val value: String)
 
 fun main(){
     val document2 = Document(
@@ -230,5 +228,8 @@ fun main(){
             )
         )
     )
-    print(document2.toXPath("fuc/avaliacao/componente"))
+    val matchingTags = document2.toXPath("fuc/avaliacao/componente")
+    for (tag in matchingTags) {
+        println(tag)
+    }
 }
