@@ -414,4 +414,125 @@ class Tests {
 
         assertEquals("Attribute name cannot be blank", exception.message)
     }
+
+
+//    @NameChanger("fuc.uc")
+//    class FUC(
+//        val codigo: String,
+//        @NomeTag("nomes ")
+//        @StringTag
+//        val nome: String,
+//        @StringTag
+//        val ects: Double,
+//        @Exclude
+//        val observacoes: String,
+//        @fowardTags
+//        val avaliacao: List<ComponenteAvaliacao>
+//    )
+    @Test
+    fun testToTag() {
+        class ComponenteAvaliacao(val nome: String, val peso: Int)
+        val c = ComponenteAvaliacao("Quizzes", 20)
+        val tag = c.toTag()
+
+        assertEquals("ComponenteAvaliacao", tag.name)
+        assertEquals("Quizzes", tag.attributes["nome"])
+        assertEquals("20", tag.attributes["peso"])
+    }
+
+    @Test
+    fun nameChanger1() {
+        @NameChanger("ComponenteAvaliacao")
+        class componenteAvaliacao(val nome: String, val peso: Int)
+        val c = componenteAvaliacao("Quizzes", 20)
+        val tag = c.toTag()
+
+        assertEquals("ComponenteAvaliacao", tag.name)
+        assertEquals("Quizzes", tag.attributes["nome"])
+        assertEquals("20", tag.attributes["peso"])
+    }
+
+    @Test
+    fun nameChanger2() {
+        class ComponenteAvaliacao(
+            @NameChanger("nome")
+            val nome1: String,
+            val peso: Int)
+        val c = ComponenteAvaliacao("Quizzes", 20)
+        val tag = c.toTag()
+
+        assertEquals("ComponenteAvaliacao", tag.name)
+        assertEquals("Quizzes", tag.attributes["nome"])
+        assertEquals("20", tag.attributes["peso"])
+    }
+
+    @Test
+    fun exclude(){
+        class ComponenteAvaliacao(
+            val nome: String,
+            val peso: Int,
+            val trash1 : String,
+            @Exclude
+            val trash2: String)
+        val c = ComponenteAvaliacao("Quizzes", 20, "lolololol", "hahahaha")
+        val tag = c.toTag()
+
+        assert(tag.attributes.containsKey("trash1"))
+        assert(!tag.attributes.containsKey("trash2"))
+    }
+
+    @Test
+    fun stringTagAnnotaion(){
+        class ComponenteAvaliacao(
+            val nome: String,
+            @AsTextTag
+            val peso: Int)
+
+        val c = ComponenteAvaliacao("Quizzes", 20)
+        val tag = c.toTag()
+
+        assertEquals("ComponenteAvaliacao", tag.name)
+        assertEquals("Quizzes", tag.attributes["nome"])
+        val pesoTag = (tag as CompositeTag).children.find { it.name == "peso" }
+        assertNotNull(pesoTag, "Peso tag not found as child")
+        assertEquals("20", (pesoTag as StringTag).content)
+        print(tag)
+
+    }
+
+    @Test
+    fun moreTest(){
+        class ComponenteAvaliacao(val nome: String, val peso: Int)
+        class FUC(
+            val codigo: String,
+            val nome: String,
+            val ects: Double,
+            val observacoes: String,
+            val avaliacao: List<ComponenteAvaliacao>
+        )
+        val f = FUC("M4310", "Programação Avançada", 6.0, "la la...",
+            listOf(
+                ComponenteAvaliacao("Quizzes", 20),
+                ComponenteAvaliacao("Projeto", 80)
+            )
+        )
+        val tag = f.toTag()
+
+        assertEquals("FUC", tag.name)
+        assertEquals("M4310", tag.attributes["codigo"])
+        assertEquals("Programação Avançada", tag.attributes["nome"])
+        assertEquals("6.0", tag.attributes["ects"])
+        assertEquals(1, (tag as CompositeTag).children.size)
+
+        val avaliacaoTag = (tag as CompositeTag).children.find { it.name == "avaliacao" }
+        assertEquals(2, (avaliacaoTag as CompositeTag).children.size)
+
+        val quizzesTag = avaliacaoTag.children.find { it.attributes["nome"] == "Quizzes" }
+        assertNotNull(quizzesTag, "Quizzes tag not found as child")
+        assertEquals("20", quizzesTag!!.attributes["Quizzes"])
+
+        val projetoTag = avaliacaoTag.children.find { it.attributes["nome"] == "Projeto" }
+        assertNotNull(projetoTag, "Projeto tag not found as child")
+        assertEquals("20", projetoTag!!.attributes["Quizzes"])
+    }
 }

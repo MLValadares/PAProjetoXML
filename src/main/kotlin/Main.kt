@@ -1,4 +1,5 @@
 import java.io.File
+import kotlin.reflect.full.*
 
 class Document(val rootTag: Tag){
     override fun toString(): String {
@@ -201,6 +202,48 @@ data class StringTag(
     }
 }
 
+@Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+annotation class NameChanger(val newName: String)
+@Target(AnnotationTarget.PROPERTY)
+annotation class Exclude
+@Target(AnnotationTarget.PROPERTY)
+annotation class AsTextTag
+fun Any.toTag(): Tag {
+    val clazz = this::class
+    val className = if(clazz.hasAnnotation<NameChanger>()){
+        require(clazz.findAnnotation<NameChanger>()!!.newName.isNotBlank()) { "New name cannot be blank" }
+        clazz.findAnnotation<NameChanger>()!!.newName
+    }else{ clazz.simpleName!! }
+    val attributes = mutableMapOf<String, String>()
+    val children = mutableListOf<Tag>()
+    clazz.declaredMemberProperties.forEach { prop ->
+        if (!prop.hasAnnotation<Exclude>()) {
+            val name = if (prop.hasAnnotation<NameChanger>()) {
+                require(prop.findAnnotation<NameChanger>()!!.newName.isNotBlank()) { "New name cannot be blank" }
+                prop.findAnnotation<NameChanger>()!!.newName
+            } else {
+                prop.name
+            }
+            val value = prop.call(this)
+            if (prop.hasAnnotation<AsTextTag>()){
+                children.add(StringTag(name, mutableMapOf(), value.toString()))
+            }else if(value is List<*>){
+                val listTag = CompositeTag(name)
+                value.filterNotNull().forEach { element ->
+                    listTag.addTag(element.toTag())
+                }
+                children.add(listTag)
+            }else{
+                attributes[name] = value.toString()
+            }
+        }
+    }
+
+
+    val c = CompositeTag(className, attributes, children)
+
+    return c
+}
 
 fun main(){
     val document2 = Document(
