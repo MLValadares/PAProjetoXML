@@ -208,6 +208,7 @@ annotation class NameChanger(val newName: String)
 annotation class Exclude
 @Target(AnnotationTarget.PROPERTY)
 annotation class AsTextTag
+
 fun Any.toTag(): Tag {
     val clazz = this::class
     val className = if(clazz.hasAnnotation<NameChanger>()){

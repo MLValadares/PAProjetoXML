@@ -523,16 +523,15 @@ class Tests {
         assertEquals("Programação Avançada", tag.attributes["nome"])
         assertEquals("6.0", tag.attributes["ects"])
         assertEquals(1, (tag as CompositeTag).children.size)
-
         val avaliacaoTag = (tag as CompositeTag).children.find { it.name == "avaliacao" }
         assertEquals(2, (avaliacaoTag as CompositeTag).children.size)
 
         val quizzesTag = avaliacaoTag.children.find { it.attributes["nome"] == "Quizzes" }
         assertNotNull(quizzesTag, "Quizzes tag not found as child")
-        assertEquals("20", quizzesTag!!.attributes["Quizzes"])
+        assertEquals("20", quizzesTag!!.attributes["peso"])
 
         val projetoTag = avaliacaoTag.children.find { it.attributes["nome"] == "Projeto" }
         assertNotNull(projetoTag, "Projeto tag not found as child")
-        assertEquals("20", projetoTag!!.attributes["Quizzes"])
+        assertEquals("80", projetoTag!!.attributes["peso"])
     }
 }
