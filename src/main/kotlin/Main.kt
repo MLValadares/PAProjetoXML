@@ -1,4 +1,5 @@
 import java.io.File
+import kotlin.reflect.*
 import kotlin.reflect.full.*
 
 class Document(val rootTag: Tag){
@@ -208,6 +209,24 @@ annotation class NameChanger(val newName: String)
 annotation class Exclude
 @Target(AnnotationTarget.PROPERTY)
 annotation class AsTextTag
+@Target(AnnotationTarget.PROPERTY)
+annotation class FowardTags
+@Target(AnnotationTarget.PROPERTY)
+annotation class ModifyString(val transformer: KClass<out StringTransformer>)
+
+// Interface para transformações de String
+interface StringTransformer {
+    fun transform(value: String): String
+}
+
+// Anotação para adaptadores
+@Target(AnnotationTarget.CLASS)
+annotation class Adapter(val adapter: KClass<out TagAdapter>)
+
+// Interface para adaptadores
+interface TagAdapter {
+    fun adapt(entity: Tag): Tag
+}
 
 fun Any.toTag(): Tag {
     val clazz = this::class
@@ -228,22 +247,37 @@ fun Any.toTag(): Tag {
             val value = prop.call(this)
             if (prop.hasAnnotation<AsTextTag>()){
                 children.add(StringTag(name, mutableMapOf(), value.toString()))
-            }else if(value is List<*>){
-                val listTag = CompositeTag(name)
-                value.filterNotNull().forEach { element ->
-                    listTag.addTag(element.toTag())
+            }else if(value is List<*>){ //por mais abstrato
+                if (prop.hasAnnotation<FowardTags>()) {
+                    value.filterNotNull().forEach { element ->
+                        children.add(element.toTag())
+                    }
+                } else {
+                    val listTag = CompositeTag(name)
+                    value.filterNotNull().forEach { element ->
+                        listTag.addTag(element.toTag())
+                    }
+                    children.add(listTag)
                 }
-                children.add(listTag)
             }else{
-                attributes[name] = value.toString()
+                if(prop.hasAnnotation<ModifyString>()){
+                    val transformer = prop.findAnnotation<ModifyString>()!!.transformer
+                    val transformerInstance = transformer.objectInstance ?: transformer.createInstance()
+                    val transformedValue = transformerInstance.transform(value.toString())
+                    attributes[name] = transformedValue
+                }else {
+                    attributes[name] = value.toString()
+                }
             }
         }
     }
 
-
-    val c = CompositeTag(className, attributes, children)
-
-    return c
+    if(clazz.hasAnnotation<Adapter>()){
+        val adapter = clazz.findAnnotation<Adapter>()!!.adapter
+        val adapterInstance = adapter.objectInstance ?: adapter.createInstance()
+        return adapterInstance.adapt(CompositeTag(className, attributes, children))
+    }
+        return CompositeTag(className, attributes, children)
 }
 
 fun main(){

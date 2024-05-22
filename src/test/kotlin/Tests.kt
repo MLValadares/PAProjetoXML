@@ -496,12 +496,11 @@ class Tests {
         val pesoTag = (tag as CompositeTag).children.find { it.name == "peso" }
         assertNotNull(pesoTag, "Peso tag not found as child")
         assertEquals("20", (pesoTag as StringTag).content)
-        print(tag)
 
     }
 
     @Test
-    fun moreTest(){
+    fun basicListToComposite(){
         class ComponenteAvaliacao(val nome: String, val peso: Int)
         class FUC(
             val codigo: String,
@@ -533,5 +532,163 @@ class Tests {
         val projetoTag = avaliacaoTag.children.find { it.attributes["nome"] == "Projeto" }
         assertNotNull(projetoTag, "Projeto tag not found as child")
         assertEquals("80", projetoTag!!.attributes["peso"])
+    }
+
+    @Test
+    fun annotationListToComposite() {
+        class ComponenteAvaliacao(val nome: String, val peso: Int)
+        class FUC(
+            val codigo: String,
+            val nome: String,
+            val ects: Double,
+            val observacoes: String,
+            @FowardTags
+            val avaliacao: List<ComponenteAvaliacao>
+        )
+
+        val f = FUC(
+            "M4310", "Programação Avançada", 6.0, "la la...",
+            listOf(
+                ComponenteAvaliacao("Quizzes", 20),
+                ComponenteAvaliacao("Projeto", 80)
+            )
+        )
+        val tag = f.toTag()
+
+        assertEquals("FUC", tag.name)
+        assertEquals("M4310", tag.attributes["codigo"])
+        assertEquals("Programação Avançada", tag.attributes["nome"])
+        assertEquals("6.0", tag.attributes["ects"])
+        assertEquals(2, (tag as CompositeTag).children.size)
+
+        val quizzesTag = tag.children.find { it.attributes["nome"] == "Quizzes" }
+        assertNotNull(quizzesTag, "Quizzes tag not found as child")
+        assertEquals("20", quizzesTag!!.attributes["peso"])
+
+        val projetoTag = tag.children.find { it.attributes["nome"] == "Projeto" }
+        assertNotNull(projetoTag, "Projeto tag not found as child")
+        assertEquals("80", projetoTag!!.attributes["peso"])
+    }
+
+    @Test
+    fun testBeforeComplex() {
+        @NameChanger("componente")
+        class ComponenteAvaliacao(
+            val nome: String,
+            val peso: Int)
+
+        @NameChanger("fuc")
+        class FUC(
+            val codigo: String,
+            @AsTextTag
+            val nome: String,
+            @AsTextTag
+            val ects: Double,
+            @Exclude
+            val observacoes: String,
+            @FowardTags
+            val avaliacao: List<ComponenteAvaliacao>
+        )
+
+        val f = FUC(
+            "M4310", "Programação Avançada", 6.0, "la la...",
+            listOf(
+                ComponenteAvaliacao("Quizzes", 20),
+                ComponenteAvaliacao("Projeto", 80)
+            )
+        )
+        val tag = f.toTag()
+
+        assertEquals("fuc", tag.name)
+
+        // Assert tag attributes
+        assertEquals("M4310", tag.attributes["codigo"])
+
+        // Assert children size
+        assertEquals(4, (tag as CompositeTag).children.size)
+
+        // Assert children content
+        val nomeTag = tag.children.find { it.name == "nome" }
+        assertNotNull(nomeTag, "Nome tag not found as child")
+        assertEquals("Programação Avançada", (nomeTag as StringTag).content)
+
+        val ectsTag = tag.children.find { it.name == "ects" }
+        assertNotNull(ectsTag, "Ects tag not found as child")
+        assertEquals("6.0", (ectsTag as StringTag).content)
+
+        val quizzesTag = tag.children.find { it.attributes["nome"] == "Quizzes" }
+        assertNotNull(quizzesTag, "Quizzes tag not found as child")
+        assertEquals("20", quizzesTag!!.attributes["peso"])
+
+        val projetoTag = tag.children.find { it.attributes["nome"] == "Projeto" }
+        assertNotNull(projetoTag, "Projeto tag not found as child")
+        assertEquals("80", projetoTag!!.attributes["peso"])
+    }
+
+    @Test
+    fun modifyStringTest(){
+        class AddPercentage: StringTransformer{
+            override fun transform(value: String): String {
+                return "$value%"
+            }
+        }
+        class ComponenteAvaliacao(
+            val nome: String,
+            @ModifyString(AddPercentage::class)
+            val peso: Int)
+
+        val c = ComponenteAvaliacao("Quizzes", 20)
+        val tag = c.toTag()
+
+        assertEquals("20%", tag.attributes["peso"])
+
+    }
+
+
+    @Test
+    fun adapterTest(){
+        class FUCAdapter : TagAdapter {
+            override fun adapt(tag: Tag): Tag {
+                val newTag = CompositeTag(tag.name, children = (tag as CompositeTag).children.toMutableList())
+
+                for ((key, value) in tag.attributes) {
+                    if (key != "nome") {
+                        newTag.addAttribute(key, value)
+                    }
+                }
+
+                if (tag.attributes.containsKey("nome")) {
+                    newTag.addAttribute("nome", tag.attributes["nome"]!!)
+                }
+
+                return newTag
+            }
+        }
+
+            @NameChanger("componente")
+            class ComponenteAvaliacao(
+                val nome: String,
+                val peso: Int)
+
+            class FUC(
+                val codigo: String,
+                val nome: String,
+                val ects: Double,
+                val observacoes: String,
+                val avaliacao: List<ComponenteAvaliacao>
+            )
+            val f = FUC("M4310", "Programação Avançada", 6.0, "la la...",
+                listOf(
+                    ComponenteAvaliacao("Quizzes", 20),
+                    ComponenteAvaliacao("Projeto", 80)
+                )
+            )
+            val tag = f.toTag()
+
+        val attributesOrder = tag.attributes.keys.toList()
+        assertEquals("codigo", attributesOrder[0])
+        assertEquals("ects", attributesOrder[1])
+        assertEquals("nome", attributesOrder[2])
+
     }
 }
