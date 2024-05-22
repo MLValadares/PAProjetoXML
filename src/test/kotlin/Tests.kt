@@ -689,6 +689,30 @@ class Tests {
         assertEquals("codigo", attributesOrder[0])
         assertEquals("ects", attributesOrder[1])
         assertEquals("nome", attributesOrder[2])
+    }
 
+    @Test
+    fun testBuild() {
+        val builder = xmlBuilder("root").apply {
+            atr("attr1", "value1")
+            tag("child") {
+                atr("childAttr", "childValue")
+                textTag("child text")
+            }
+        }
+
+        val tag = builder.build()
+
+        // Assert root tag name
+        assertEquals("root", tag.name)
+
+        // Assert root tag attributes
+        assertEquals("value1", tag.attributes["attr1"])
+
+        // Assert child tag
+        val childTag = (tag as CompositeTag).children.first()
+        assertEquals("child", childTag.name)
+        assertEquals("childValue", childTag.attributes["childAttr"])
+        assertEquals("child text", (childTag as StringTag).content)
     }
 }

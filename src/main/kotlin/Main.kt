@@ -280,6 +280,39 @@ fun Any.toTag(): Tag {
         return CompositeTag(className, attributes, children)
 }
 
+class xmlBuilder(private val name: String) {
+    private val children = mutableListOf<xmlBuilder>()
+    private val attributes = mutableMapOf<String, String>()
+    private var textContent: String? = null
+
+    fun tag(name: String, init: xmlBuilder.() -> Unit): xmlBuilder {
+        val child = xmlBuilder(name)
+        child.init()
+        children.add(child)
+        return this
+    }
+
+    fun atr(name: String, value: String): xmlBuilder {
+        attributes[name] = value
+        return this
+    }
+
+    fun textTag(text: String): xmlBuilder {
+        textContent = text
+        return this
+    }
+
+    fun build(): Tag {
+        return if (textContent != null) {
+            StringTag(name, attributes, textContent!!, parent = null)
+        } else {
+            val tagChildren = children.map { it.build() }.toMutableList()
+            CompositeTag(name, attributes, tagChildren, parent = null)
+        }
+    }
+}
+
+
 fun main(){
     val document2 = Document(
         CompositeTag(
