@@ -717,6 +717,69 @@ class Tests {
         assertEquals("nome", attributesOrder[2])
     }
 
+
+    @Test
+    fun testToDocumentComplex() {
+        // Define the classes and annotations
+        @NameChanger("componente")
+        class ComponenteAvaliacao(
+            val nome: String,
+            val peso: Int)
+
+        @NameChanger("fuc")
+        class FUC(
+            val codigo: String,
+            @AsTextTag
+            val nome: String,
+            @AsTextTag
+            val ects: Double,
+            @Exclude
+            val observacoes: String,
+            @FowardTags
+            val avaliacao: List<ComponenteAvaliacao>
+        )
+
+        // Create an instance of FUC
+        val f = FUC(
+            "M4310", "Programação Avançada", 6.0, "la la...",
+            listOf(
+                ComponenteAvaliacao("Quizzes", 20),
+                ComponenteAvaliacao("Projeto", 80)
+            )
+        )
+
+        // Convert the FUC instance to a Document
+        val document = f.toDocument()
+
+        // Perform assertions
+        val root = document.rootTag as CompositeTag
+        assertEquals("fuc", root.name)
+
+
+        // Assert tag attributes
+        assertEquals("M4310", root.attributes["codigo"])
+
+        // Assert children size
+        assertEquals(4, root.children.size)
+
+        // Assert children content
+        val nomeTag = root.children.find { it.name == "nome" }
+        assertNotNull(nomeTag, "Nome tag not found as child")
+        assertEquals("Programação Avançada", (nomeTag as StringTag).content)
+
+        val ectsTag = root.children.find { it.name == "ects" }
+        assertNotNull(ectsTag, "Ects tag not found as child")
+        assertEquals("6.0", (ectsTag as StringTag).content)
+
+        val quizzesTag = root.children.find { it.attributes["nome"] == "Quizzes" }
+        assertNotNull(quizzesTag, "Quizzes tag not found as child")
+        assertEquals("20", quizzesTag!!.attributes["peso"])
+
+        val projetoTag = root.children.find { it.attributes["nome"] == "Projeto" }
+        assertNotNull(projetoTag, "Projeto tag not found as child")
+        assertEquals("80", projetoTag!!.attributes["peso"])
+    }
+
     @Test
     fun `buildTag should create a StringTag when textContent is present`() {
         val builder = XmlBuilder("greeting").apply {

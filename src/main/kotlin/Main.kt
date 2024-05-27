@@ -515,6 +515,10 @@ fun Any.toTag(): Tag {
         return CompositeTag(className, attributes, children)
 }
 
+fun Any.toDocument(): Document {
+    return Document(this.toTag())
+}
+
 class XmlBuilder(private val name: String) {
     private val children = mutableListOf<XmlBuilder>()
     private val attributes = mutableMapOf<String, String>()
