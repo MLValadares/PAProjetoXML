@@ -2,6 +2,14 @@ import java.io.File
 import kotlin.reflect.*
 import kotlin.reflect.full.*
 
+/**
+ * Classe que representa um documento XML.
+ * @property rootTag a tag raiz do documento
+ * @constructor cria um documento XML com a tag raiz especificada
+ * @throws IllegalArgumentException se o nome da tag raiz estiver em branco
+ *
+ */
+
 class Document(val rootTag: Tag){
     override fun toString(): String {
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n${rootTag.toString()}"
@@ -247,7 +255,7 @@ fun Any.toTag(): Tag {
             val value = prop.call(this)
             if (prop.hasAnnotation<AsTextTag>()){
                 children.add(StringTag(name, mutableMapOf(), value.toString()))
-            }else if(value is List<*>){ //por mais abstrato
+            }else if(value is Collection<*>){ //More abstract
                 if (prop.hasAnnotation<FowardTags>()) {
                     value.filterNotNull().forEach { element ->
                         children.add(element.toTag())
@@ -280,24 +288,24 @@ fun Any.toTag(): Tag {
         return CompositeTag(className, attributes, children)
 }
 
-class xmlBuilder(private val name: String) {
-    private val children = mutableListOf<xmlBuilder>()
+class XmlBuilder(private val name: String) {
+    private val children = mutableListOf<XmlBuilder>()
     private val attributes = mutableMapOf<String, String>()
     private var textContent: String? = null
 
-    fun tag(name: String, init: xmlBuilder.() -> Unit): xmlBuilder {
-        val child = xmlBuilder(name)
+    fun tag(name: String, init: XmlBuilder.() -> Unit): XmlBuilder {
+        val child = XmlBuilder(name)
         child.init()
         children.add(child)
         return this
     }
 
-    fun atr(name: String, value: String): xmlBuilder {
+    fun atr(name: String, value: String): XmlBuilder {
         attributes[name] = value
         return this
     }
 
-    fun textTag(text: String): xmlBuilder {
+    fun textTag(text: String): XmlBuilder {
         textContent = text
         return this
     }

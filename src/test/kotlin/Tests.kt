@@ -693,7 +693,7 @@ class Tests {
 
     @Test
     fun testBuild() {
-        val builder = xmlBuilder("root").apply {
+        val builder = XmlBuilder("root").apply {
             atr("attr1", "value1")
             tag("child") {
                 atr("childAttr", "childValue")
