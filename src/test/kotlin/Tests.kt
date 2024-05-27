@@ -240,7 +240,7 @@ class Tests {
 
     //pretty print
     @Test
-    fun test10(){
+    fun prettyString1(){
         val expected = """
             <?xml version="1.0" encoding="UTF-8"?>
             <plano>
@@ -255,9 +255,35 @@ class Tests {
             </plano>
             
         """.trimIndent()
-        val output = document1.toString()
+        val output = document1.prettyString()
         assertEquals(expected, output)
     }
+
+    //pretty print
+    @Test
+    fun prettyString2(){
+        val tag = CompositeTag(
+            "parent",
+            children = mutableListOf(
+                StringTag("child1", content = "Child1 content"),
+                StringTag("child2", content = "Child2 content")
+            )
+        )
+
+        val expected = """
+            <parent>
+              <child1>Child1 content</child1>
+              <child2>Child2 content</child2>
+            </parent>
+            
+            """.trimIndent()
+
+        val result = tag.prettyString()
+
+        assertEquals(expected, result)
+    }
+
+
     //escrita para ficheiro
     @Test
     fun test11(){
@@ -692,27 +718,151 @@ class Tests {
     }
 
     @Test
-    fun testBuild() {
+    fun `buildTag should create a StringTag when textContent is present`() {
+        val builder = XmlBuilder("greeting").apply {
+            textTag("Hello, World!")
+            atr("language", "English")
+        }
+        val tag = builder.buildTag()
+
+        assertTrue(tag is StringTag)
+        if (tag is StringTag) {
+            assertEquals("greeting", tag.name)
+            assertEquals("Hello, World!", tag.content)
+            assertEquals(mapOf("language" to "English"), tag.attributes)
+        }
+    }
+
+    @Test
+    fun `buildTag should create a CompositeTag when children are present`() {
+        val builder = XmlBuilder("greeting").apply {
+            atr("language", "English")
+            tag("note") {
+                textTag("This is an example note.")
+            }
+        }
+        val tag = builder.buildTag()
+
+        assertTrue(tag is CompositeTag)
+        if (tag is CompositeTag) {
+            assertEquals("greeting", tag.name)
+            assertEquals(mapOf("language" to "English"), tag.attributes)
+            assertEquals(1, tag.children.size)
+            assertTrue(tag.children[0] is StringTag)
+        }
+    }
+
+    @Test
+    fun `buildTag should create a CompositeTag with multiple children`() {
         val builder = XmlBuilder("root").apply {
-            atr("attr1", "value1")
-            tag("child") {
-                atr("childAttr", "childValue")
-                textTag("child text")
+            tag("greeting") {
+                textTag("Hello, World!")
+                atr("language", "English")
+            }
+            tag("farewell") {
+                textTag("Goodbye, World!")
+                atr("language", "English")
+            }
+        }
+        val tag = builder.buildTag()
+
+        assertTrue(tag is CompositeTag)
+        if (tag is CompositeTag) {
+            assertEquals("root", tag.name)
+            assertTrue(tag.children.size == 2)
+            assertTrue(tag.children[0] is StringTag)
+            assertTrue(tag.children[1] is StringTag)
+        }
+    }
+    @Test
+    fun `build should create a Document with a root CompositeTag`() {
+        val builder = XmlBuilder("root").apply {
+            tag("greeting") {
+                atr("language", "English")
+                tag("heya"){
+                    }
+            }
+        }
+        val document = builder.build()
+
+        assertNotNull(document)
+        assertTrue(document.rootTag is CompositeTag)
+        val root = document.rootTag as CompositeTag
+        assertEquals("root", root.name)
+        assertTrue(root.children.size == 1)
+        println(root.children[0])
+        assertTrue(root.children[0] is CompositeTag)
+    }
+    @Test
+    fun `build should create a Document with a root StringTag`() {
+        val builder = XmlBuilder("greeting").apply {
+            atr("language", "English")
+            textTag("Hello, World!")
+        }
+        val document = builder.build()
+
+        assertNotNull(document)
+        assertTrue(document.rootTag is StringTag)
+        val root = document.rootTag as StringTag
+        assertEquals("greeting", root.name)
+        assertEquals("Hello, World!", root.content)
+        assertEquals(mapOf("language" to "English"), root.attributes)
+    }
+
+    @Test
+    fun `build should create a Document with nested tags`() {
+        val builder = XmlBuilder("root").apply {
+            tag("greeting") {
+                atr("language", "English")
+                tag("note") {
+                    atr("language", "English")
+                    textTag("This is an example of a simple XML created using Kotlin DSL.")
+                }
+                tag("farewell") {
+                    atr("language", "English")
+                    textTag("Goodbye, World!")
+                }
+            }
+            tag("note"){
+                textTag("Herro")
             }
         }
 
-        val tag = builder.build()
+        val document = builder.build()
 
-        // Assert root tag name
-        assertEquals("root", tag.name)
+        assertNotNull(document)
+        assertTrue(document.rootTag is CompositeTag)
+        val root = document.rootTag as CompositeTag
+        assertEquals("root", root.name)
+        assertTrue(root.children.size == 2)
 
-        // Assert root tag attributes
-        assertEquals("value1", tag.attributes["attr1"])
+        val greetingTag = root.children[0] as CompositeTag
+        assertEquals("greeting", greetingTag.name)
+        assertEquals(mapOf("language" to "English"), greetingTag.attributes)
+        assertTrue(greetingTag.children.size == 2)
 
-        // Assert child tag
-        val childTag = (tag as CompositeTag).children.first()
-        assertEquals("child", childTag.name)
-        assertEquals("childValue", childTag.attributes["childAttr"])
-        assertEquals("child text", (childTag as StringTag).content)
+        val noteTag = greetingTag.children[1] as StringTag
+        assertEquals("farewell", noteTag.name)
+        assertEquals("Goodbye, World!", noteTag.content)
+
+        val farewellTag = greetingTag.children[0] as StringTag
+        assertEquals("note", farewellTag.name)
+        assertEquals(mapOf("language" to "English"), farewellTag.attributes)
+        assertEquals("This is an example of a simple XML created using Kotlin DSL.", farewellTag.content)
     }
+
+    @Test
+    fun `build should handle empty document`() {
+        val builder = XmlBuilder("root")
+        val document = builder.build()
+
+        assertNotNull(document)
+        assertTrue(document.rootTag is CompositeTag)
+        val root = document.rootTag as CompositeTag
+        assertEquals("root", root.name)
+        assertTrue(root.children.isEmpty())
+    }
+
+
 }
+

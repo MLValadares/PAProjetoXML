@@ -4,6 +4,9 @@ import kotlin.reflect.full.*
 
 /**
  * Classe que representa um documento XML.
+ * Permite manipular o documento de forma global, como: adicionar atributos, renomear tags e os seus atributos e remover tags e atributos.
+ * Também permite a conversão de um documento XML para uma expressão XPath.
+ *
  * @property rootTag a tag raiz do documento
  * @constructor cria um documento XML com a tag raiz especificada
  * @throws IllegalArgumentException se o nome da tag raiz estiver em branco
@@ -11,9 +14,25 @@ import kotlin.reflect.full.*
  */
 
 class Document(val rootTag: Tag){
-    override fun toString(): String {
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n${rootTag.toString()}"
+
+    init {
+        require(rootTag.name.isNotBlank()) { "Root tag name cannot be blank" }
     }
+
+    /**
+     * Retorna uma representação em string do documento XML.
+     *
+     * @return uma string que representa o documento XML
+     */
+    fun prettyString(): String {
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n${rootTag.prettyString()}"
+    }
+
+    /**
+     * Escreve o documento XML num ficheiro.
+     *
+     * @param filePath o caminho do ficheiro onde o documento XML será escrito
+     */
     fun writeToFile(filePath: String) {
         val xmlString = this.toString()
         try { //completar testes
@@ -23,6 +42,14 @@ class Document(val rootTag: Tag){
             println("Error writing XML document to file: $e")
         }
     }
+
+    /**
+     * Adiciona um atributo a todas as tags com um determinado nome.
+     *
+     * @param tagName o nome da tag
+     * @param attributeKey o nome do atributo
+     * @param attributeValue o valor do atributo
+     */
     fun addAttributes(tagName: String, attributeKey: String, attributeValue: String) {
         val visitor: (Tag) -> Boolean = { tag ->
             if (tag.name == tagName) {
@@ -33,6 +60,12 @@ class Document(val rootTag: Tag){
         rootTag.accept(visitor)
     }
 
+    /**
+     * Renomeia todas as tags com um determinado nome.
+     *
+     * @param oldName o nome antigo da tag
+     * @param newName o novo nome da tag
+     */
     fun renameTags(oldName: String, newName: String) {
         val visitor: (Tag) -> Boolean = { tag ->
             if (tag.name == oldName) {
@@ -42,6 +75,14 @@ class Document(val rootTag: Tag){
         }
         rootTag.accept(visitor)
     }
+
+    /**
+     * Renomeia todos os atributos de todas as tags com um determinado nome.
+     *
+     * @param tagName o nome da tag
+     * @param oldKey o nome antigo do atributo
+     * @param newKey o novo nome do atributo
+     */
     fun renameAttributes(tagName: String, oldKey: String, newKey: String) {
         val visitor: (Tag) -> Boolean = { tag ->
             if (tag.name == tagName && tag.attributes.containsKey(oldKey)) {
@@ -51,11 +92,16 @@ class Document(val rootTag: Tag){
         }
         rootTag.accept(visitor)
     }
+
+    /**
+     * Remove todas as tags com um determinado nome.
+     *
+     * @param tagName o nome da tag
+     */
     fun removeTags(tagName: String) {
         val list = mutableListOf<Tag>()
         val visitor: (Tag) -> Boolean = { tag ->
             if (tag.name == tagName) {
-//                tag.parent?.removeTag(tag)
                 list.add(tag)
             }
             true
@@ -65,6 +111,13 @@ class Document(val rootTag: Tag){
             it.parent?.removeTag(it)
         }
     }
+
+    /**
+     * Remove todos os atributos de todas as tags com um determinado nome.
+     *
+     * @param tagName o nome da tag
+     * @param attributeKey o nome do atributo
+     */
     fun removeAttributes(tagName: String, attributeKey: String) {
         val visitor: (Tag) -> Boolean = { tag ->
             if (tag.name == tagName && tag.attributes.containsKey(attributeKey)) {
@@ -75,6 +128,12 @@ class Document(val rootTag: Tag){
         rootTag.accept(visitor)
     }
 
+    /**
+     * Converte uma expressão XPath numa lista de tags, incluindo o seu conteúdo.
+     *
+     * @param expression a expressão XPath
+     * @return uma lista de tags que correspondem à expressão XPath
+     */
     fun toXPath(expression: String): List<Tag> {
         val expressionParts = expression.split('/')
         var currentTags: List<Tag> = listOf(rootTag)
@@ -94,29 +153,66 @@ class Document(val rootTag: Tag){
 }
 
 
+/**
+ * Interface que representa uma tag de um documento XML.
+ * Permite manipular tags de forma individual, como: adicionar e remover atributos, renomear tags e atributos e converter uma tag para uma representação em string.
+ *
+ * @property name o nome da tag
+ * @property attributes os atributos da tag
+ * @property parent a tag pai
+ * @constructor cria uma tag com o nome especificado
+ *
+ */
 
 interface Tag {
     var name: String //o que fazer aqui?
     val attributes: Map<String, String> //possivel problema, por mais abstrato? //protected??
     var parent: CompositeTag?
-//remover do proprio do pai
 
+
+    /**
+     * Adiciona a tag a um pai.
+     *
+     * @param parent a tag pai
+     */
     fun addToParent(parent: CompositeTag) {//testes
         parent.addTag(this)
     }
+
+    /**
+     * Remove a tag do pai.
+     */
     fun removeFromParent() {//testes
         parent?.removeTag(this)
         parent = null
     }
+
+    /**
+     * Adiciona um atributo à tag.
+     *
+     * @param key o nome do atributo
+     * @param value o valor do atributo
+     */
     fun addAttribute(key: String, value: String) {
         require(key.isNotBlank()) { "Attribute name cannot be blank" }
         (attributes as MutableMap)[key] = value
     }
 
+    /**
+     * Remove um atributo da tag.
+     *
+     * @param key o nome do atributo
+     */
     fun removeAttribute(key: String) {
         (attributes as MutableMap).remove(key)
     }
 
+    /**
+     * Renomeia um atributo da tag.
+     *
+     * @param oldKey o nome antigo do atributo
+     * @param newKey o novo nome do atributo
+     */
     fun renameAttribute(oldKey: String, newKey: String) {
         val value = (attributes as MutableMap).remove(oldKey)
         if (value != null) {
@@ -124,37 +220,57 @@ interface Tag {
         }
     }
 
+    /**
+     * Modifica um atributo da tag.
+     *
+     * @param key o nome do atributo
+     * @param value o valor do atributo
+     */
     fun modifyAttribute(key: String, value: String) {
         (attributes as MutableMap)[key] = value
     }
 
-    fun toString(sb: StringBuilder, depth: Int) {
-        val indent = "  ".repeat(depth)
-        sb.append("$indent<$name")
-        for ((key, value) in attributes) {
-            sb.append(" $key=\"$value\"")
-        }
-        if (this is CompositeTag && children.isNotEmpty()) {
-            sb.append(">\n")
-            for (child in children) {
-                child.toString(sb, depth + 1)
-            }
-            sb.append("$indent</$name>\n")
-        } else if (this is StringTag) {
-            sb.append(">$content</$name>\n")
-        } else {
-            sb.append("/>\n")
-        }
-    }
+    /**
+     * Retorna uma representação em string da tag.
+     *
+     * @param indent a indentação da tag
+     * @return uma string que representa a tag
+     */
+    fun prettyString(indent: String = ""): String
+
+    /**
+     * Aceita um visitante que processa a tag.
+     *
+     * @param visitor o visitante
+     */
     fun accept(visitor: (Tag) -> Boolean) {
         visitor(this)
     }
 
+    /**
+     * Renomeia a tag.
+     *
+     * @param newName o novo nome da tag
+     */
     fun rename(newName: String) {
         this.name = newName
     }
 }
 
+
+/**
+ * Classe que representa uma tag composta de um documento XML, que consiste numa tag com outras tag insiridas ou uma tag sem conteúdo.
+ * Permite manipular tags compostas de forma individual, como: adicionar e remover tags, renomear tags e atributos e converter uma tag composta para uma representação em string.
+ *
+ * @property name o nome da tag
+ * @property attributes os atributos da tag
+ * @property children as tags filhas
+ * @property parent a tag pai
+ * @constructor cria uma tag composta com o nome especificado
+ * @throws IllegalArgumentException se o nome da tag estiver em branco
+ * @throws IllegalArgumentException se o nome da tag contiver caracteres inválidos
+ * @throws IllegalArgumentException se o nome do atributo estiver em branco
+ */
 data class CompositeTag(
     override var name: String, //mudar para val
     override val attributes: MutableMap<String, String> = mutableMapOf(),
@@ -169,19 +285,55 @@ data class CompositeTag(
         require(attributes.keys.none { it.isBlank() }) { "Attribute name cannot be blank" }
         parent?.children?.add(this)
     }
-    //override
+
+    /**
+     * Adiciona uma tag filha à tag composta.
+     *
+     * @param tag a tag filha
+     */
     fun addTag(tag: Tag) {
         children.add(tag)
         tag.parent = this
     }
+
+    /**
+     * Remove uma tag filha da tag composta.
+     *
+     * @param tag a tag filha
+     */
     fun removeTag(tag: Tag) {
         children.remove(tag)
     }
-    override fun toString(): String {
+
+    /**
+     * Retorna uma representação em string da tag composta.
+     *
+     * @param indent a indentação da tag
+     * @return uma string que representa a tag composta
+     */
+    override fun prettyString(indent: String): String {
         val sb = StringBuilder()
-        toString(sb, 0)
+        sb.append("$indent<$name")
+        for ((key, value) in attributes) {
+            sb.append(" $key=\"$value\"")
+        }
+        if (children.isNotEmpty()) {
+            sb.append(">\n")
+            for (child in children) {
+                sb.append(child.prettyString("$indent  "))
+            }
+            sb.append("$indent</$name>\n")
+        } else {
+            sb.append("/>\n")
+        }
         return sb.toString()
     }
+
+    /**
+     * Aceita um visitante que processa a tag composta.
+     *
+     * @param visitor o visitante
+     */
     override fun accept(visitor: (Tag) -> Boolean) {
         if (visitor(this))
             children.forEach {
@@ -189,6 +341,20 @@ data class CompositeTag(
             }
     }
 }
+
+/**
+ * Classe que representa uma tag de texto de um documento XML, que consiste numa tag com um conteúdo de texto.
+ * Permite manipular tags de texto de forma individual, como: adicionar e remover atributos, renomear tags e atributos e converter uma tag de texto para uma representação em string.
+ *
+ * @property name o nome da tag
+ * @property attributes os atributos da tag
+ * @property content o conteúdo da tag
+ * @property parent a tag pai
+ * @constructor cria uma tag de texto com o nome e conteúdo especificados
+ * @throws IllegalArgumentException se o nome da tag estiver em branco
+ * @throws IllegalArgumentException se o nome da tag contiver caracteres inválidos
+ * @throws IllegalArgumentException se o nome do atributo estiver em branco
+ */
 
 data class StringTag(
     override var name: String,
@@ -203,39 +369,100 @@ data class StringTag(
         parent?.children?.add(this)
     }
 
+    /**
+     * Retorna uma representação em string da tag de texto.
+     *
+     * @param indent a indentação da tag
+     * @return uma string que representa a tag de texto
+     */
 
-    override fun toString(): String {
+    override fun prettyString(indent: String): String {
         val sb = StringBuilder()
-        toString(sb, 0)
+        sb.append("$indent<$name")
+        for ((key, value) in attributes) {
+            sb.append(" $key=\"$value\"")
+        }
+        sb.append(">$content</$name>\n")
         return sb.toString()
     }
+
 }
 
+/**
+ * Anotoções utilizadas para a conversão de objetos para tags de XML.
+ */
+
+/**
+ * Anotação que permite alterar o nome da propriedade/classes para a conversão de objetos para tags de XML.
+ *
+ * @property newName o novo nome da propriedade/classe
+ */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
 annotation class NameChanger(val newName: String)
+
+/**
+ * Anotação que permite excluir propriedades da conversão de objetos para tags de XML.
+ */
 @Target(AnnotationTarget.PROPERTY)
 annotation class Exclude
+
+/**
+ * Anotação que permite transforma no que seria um propriedade da tag root em um tag de texto.
+ */
 @Target(AnnotationTarget.PROPERTY)
 annotation class AsTextTag
+
+/**
+ * Anotação que permite transformar uma propriedade numa lista de tags, de forma a "pushar" a lista em frente.
+ */
 @Target(AnnotationTarget.PROPERTY)
 annotation class FowardTags
+
+/**
+ * Anotação que permite modificar o valor de uma propriedade antes de ser convertida para uma tag de XML.
+ *
+ * @property transformer a classe que implementa a transformação
+ */
 @Target(AnnotationTarget.PROPERTY)
 annotation class ModifyString(val transformer: KClass<out StringTransformer>)
 
-// Interface para transformações de String
+
+/**
+ * Interface para transformações de String
+ */
 interface StringTransformer {
+
+    /**
+     * Transforma uma string.
+     *
+     * @param value a string a ser transformada
+     * @return a string transformada
+     */
     fun transform(value: String): String
 }
 
-// Anotação para adaptadores
+/**
+ * Anotação que permite adicionar um adaptador a uma classe para a conversão de objetos para tags de XML.
+ *
+ * @property adapter a classe do adaptador
+ */
 @Target(AnnotationTarget.CLASS)
 annotation class Adapter(val adapter: KClass<out TagAdapter>)
 
-// Interface para adaptadores
+/**
+ * Interface para adaptadores de tags.
+ */
 interface TagAdapter {
     fun adapt(entity: Tag): Tag
 }
 
+
+/**
+ * Classe que representa um adaptador de tags de XML.
+ * Permite adaptar tags de XML para outras tags de XML.
+ *
+ * @constructor cria um adaptador de tags de XML
+ */
 fun Any.toTag(): Tag {
     val clazz = this::class
     val className = if(clazz.hasAnnotation<NameChanger>()){
@@ -294,6 +521,7 @@ class XmlBuilder(private val name: String) {
     private var textContent: String? = null
 
     fun tag(name: String, init: XmlBuilder.() -> Unit): XmlBuilder {
+        require(name.isNotBlank()) { "Tag name cannot be null or blank" }
         val child = XmlBuilder(name)
         child.init()
         children.add(child)
@@ -310,45 +538,59 @@ class XmlBuilder(private val name: String) {
         return this
     }
 
-    fun build(): Tag {
+    fun build(): Document {
+        val rootTag = buildTag()
+        return Document(rootTag as Tag)
+    }
+
+    fun buildTag(): Tag {
         return if (textContent != null) {
-            StringTag(name, attributes, textContent!!, parent = null)
+            StringTag(name ?: throw IllegalStateException("Tag name cannot be null"), attributes, textContent!!, parent = null)
         } else {
-            val tagChildren = children.map { it.build() }.toMutableList()
-            CompositeTag(name, attributes, tagChildren, parent = null)
+            CompositeTag(name ?: throw IllegalStateException("Tag name cannot be null"), attributes,
+                children.map { it.buildTag() }.toMutableList(), parent = null)
         }
     }
+
 }
+
+
 
 
 fun main(){
-    val document2 = Document(
-        CompositeTag(
-            "plano",
-            children = mutableListOf(
-                StringTag("curso", content = "Mestrado em Engenharia Informática"),
-                CompositeTag("fuc", mutableMapOf(("codigo" to "M4310")), mutableListOf(
-                    StringTag("nome", content = "Programação Avançada"),
-                    StringTag("ects", content = "6.0"),
-                    CompositeTag("avaliacao", children = mutableListOf(
-                        CompositeTag("componente", mutableMapOf(("nome" to "Quizzes"), ("peso" to "20%"))),
-                        CompositeTag("componente", mutableMapOf(("nome" to "Projeto"), ("peso" to "80%")))
-                    ))
-                )),
-                CompositeTag("fuc", mutableMapOf(("codigo" to "03782")), mutableListOf(
-                    StringTag("nome", content = "Dissertação"),
-                    StringTag("ects", content = "42.0"),
-                    CompositeTag("avaliacao", children = mutableListOf(
-                        CompositeTag("componente", mutableMapOf(("nome" to "Dissertação"), ("peso" to "60%"))),
-                        CompositeTag("componente", mutableMapOf(("nome" to "Apresentação"), ("peso" to "20%"))),
-                        CompositeTag("componente", mutableMapOf(("nome" to "Discussão"), ("peso" to "20%")))
-                    ))
-                ))
-            )
-        )
-    )
-    val matchingTags = document2.toXPath("fuc/avaliacao/componente")
-    for (tag in matchingTags) {
-        println(tag)
-    }
+//    val document2 = Document(
+//        CompositeTag(
+//            "plano",
+//            children = mutableListOf(
+//                StringTag("curso", content = "Mestrado em Engenharia Informática"),
+//                CompositeTag("fuc", mutableMapOf(("codigo" to "M4310")), mutableListOf(
+//                    StringTag("nome", content = "Programação Avançada"),
+//                    StringTag("ects", content = "6.0"),
+//                    CompositeTag("avaliacao", children = mutableListOf(
+//                        CompositeTag("componente", mutableMapOf(("nome" to "Quizzes"), ("peso" to "20%"))),
+//                        CompositeTag("componente", mutableMapOf(("nome" to "Projeto"), ("peso" to "80%")))
+//                    ))
+//                )),
+//                CompositeTag("fuc", mutableMapOf(("codigo" to "03782")), mutableListOf(
+//                    StringTag("nome", content = "Dissertação"),
+//                    StringTag("ects", content = "42.0"),
+//                    CompositeTag("avaliacao", children = mutableListOf(
+//                        CompositeTag("componente", mutableMapOf(("nome" to "Dissertação"), ("peso" to "60%"))),
+//                        CompositeTag("componente", mutableMapOf(("nome" to "Apresentação"), ("peso" to "20%"))),
+//                        CompositeTag("componente", mutableMapOf(("nome" to "Discussão"), ("peso" to "20%")))
+//                    ))
+//                ))
+//            )
+//        )
+//    )
+//    val matchingTags = document2.toXPath("fuc/avaliacao/componente")
+//    for (tag in matchingTags) {
+//        println(tag)
+//    }
+
+    print(StringTag("nome", content = "Programação Avançada"))
+    print(StringTag("nome", content = "Programação Avançada"))
 }
+
+//fazer regex
+//toDocument
