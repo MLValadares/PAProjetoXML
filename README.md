@@ -35,6 +35,9 @@ A biblioteca suporta a criação de elementos XML, adição/remoção de atribut
 - Anotações (`NameChanger`, `Exclude`, `AsTextTag`, `FowardTags`, `ModifyString`, `Adapter`): Utilizadas para converter objetos Kotlin em tags XML.
 - `StringTransformer` e `TagAdapter`: Interfaces para transformação de strings e adaptação de tags, respectivamente.
 
+### Diagrama de Classes
+![Diagrama de Classes](./Diagrama_de_Classes.jpg)
+
 ## Funcionalidades
 
 ### Document
