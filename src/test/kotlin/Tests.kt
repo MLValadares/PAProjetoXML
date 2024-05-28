@@ -732,6 +732,7 @@ class Tests {
                 val nome: String,
                 val peso: Int)
 
+            @Adapter(FUCAdapter::class)
             class FUC(
                 val codigo: String,
                 val nome: String,
@@ -750,7 +751,7 @@ class Tests {
         val attributesOrder = tag.attributes.keys.toList()
         assertEquals("codigo", attributesOrder[0])
         assertEquals("ects", attributesOrder[1])
-        assertEquals("nome", attributesOrder[2])
+        assertEquals("nome", attributesOrder[3])
     }
 
 

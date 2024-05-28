@@ -163,6 +163,48 @@ val tag = f.toTag()
 val doc = f.toDocument()
 ```
 
+### ModifyString - Example
+```kotlin
+class AddPercentage: StringTransformer{
+    override fun transform(value: String): String {
+        return "$value%"
+    }
+}
+
+class ComponenteAvaliacao(
+  val nome: String,
+  @ModifyString(AddPercentage::class)
+  val peso: Int)
+```
+
+#### Adapter - Example
+```kotlin
+class FUCAdapter : TagAdapter {
+    override fun adapt(tag: Tag): Tag { 
+        val newTag = CompositeTag(tag.name, children = (tag as CompositeTag).children.toMutableList())
+        for ((key, value) in tag.attributes) { 
+            if (key != "nome") { 
+                newTag.addAttribute(key, value)
+            }
+        }
+        if (tag.attributes.containsKey("nome")) {
+            newTag.addAttribute("nome", tag.attributes["nome"]!!)
+        }
+
+        return newTag
+    }
+}
+
+@Adapter(FUCAdapter::class)
+class FUC(
+  val codigo: String,
+  val nome: String,
+  val ects: Double,
+  val observacoes: String,
+  val avaliacao: List<ComponenteAvaliacao>
+)
+```
+
 ### DSL Interno
 ```kotlin
 val builder = XmlBuilder("plano").apply{
