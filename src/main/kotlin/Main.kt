@@ -106,7 +106,7 @@ class Document(val rootTag: Tag){
             }
             true
         }
-        rootTag.accept(visitor)
+        rootTag.accept (visitor)
         list.forEach {
             it.parent?.removeTag(it)
         }

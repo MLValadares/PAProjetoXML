@@ -56,7 +56,7 @@ A biblioteca suporta a criação de elementos XML, adição/remoção de atribut
 - **`removeAttribute(key: String)`**: Remove um atributo da tag.
 - **`renameAttribute(oldKey: String, newKey: String)`**: Renomeia um atributo da tag.
 - **`modifyAttribute(key: String, value: String)`**: Modifica um atributo da tag.
-- **`prettyString(indent: String = "")`**: Retorna uma representação em string da tag.
+- **`prettyString()`**: Retorna uma representação em string da tag.
 - **`accept(visitor: (Tag) -> Boolean)`**: Aceita um visitante que processa a tag.
 - **`rename(newName: String)`**: Renomeia a tag.
 
@@ -73,24 +73,12 @@ A biblioteca suporta a criação de elementos XML, adição/remoção de atribut
 - **`build()`**: Constrói um documento XML a partir do `XmlBuilder`.
 - **`buildTag()`**: Constrói uma tag a partir do `XmlBuilder`.
 
-## Installation
-
-Add the following dependency to your Kotlin project:
-
-```kotlin
-dependencies {
-    implementation("com.example:xml-manipulation:1.0.0")
-}
-```
-
 ## Usage
 
 ### Basic API Usage
 Creating an XML Document
 
 ```kotlin
-import com.example.xml.*
-
 fun main() {
     val doc = Document(
       CompositeTag(
@@ -110,6 +98,24 @@ fun main() {
 }
 ```
 
+Pretty Printing XML
+```kotlin
+println(doc.prettyPrint())
+```
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<plano>
+    <curso>Mestrado em Engenharia Informática</curso>
+    <fuc code="M4310">
+    <nome>Programação Avançada</nome>
+    <ects>6.0</ects>
+    <avaliacao>
+        <componente nome="Quizzes" Projeto="80%"/>
+    </avaliacao>
+    </fuc>
+</plano>
+```
+
 Adding and Removing Attributes
 ```kotlin
 val element = CompositeTag("test")
@@ -123,24 +129,6 @@ val parent = CompositeTag("parent")
 val child = CompositeTag("child")
 parent.addChild(child)
 parent.removeChild("child")
-```
-
-
-Pretty Printing XML
-```kotlin
-println(doc.prettyPrint())
-
-<?xml version="1.0" encoding="UTF-8"?>
-<plano>
-    <curso>Mestrado em Engenharia Informática</curso>
-    <fuc code="M4310">
-    <nome>Programação Avançada</nome>
-    <ects>6.0</ects>
-    <avaliacao>
-        <componente nome="Quizzes" Projeto="80%"/>
-    </avaliacao>
-    </fuc>
-</plano>
 ```
 
 ### Mapeamento Classes-XML
@@ -172,14 +160,33 @@ val f = FUC(
 )
 val tag = f.toTag()
 
-<fuc codigo="M4310">
-    <ects>6.0</ects>
-    <nome>Programação Avançada</nome>
-    <componente nome="Quizzes" peso="20%"/>
-    <componente nome="Projeto" peso="80%"/>
-</fuc>
+val doc = f.toDocument()
 ```
 
 ### DSL Interno
+```kotlin
+val builder = XmlBuilder("plano").apply{
+  tag("curso"){
+    textTag("Mestrado em Engenharia Informática")
+  }
+  tag("fuc"){
+    atr("codigo", "M4310")
+    tag("nome"){
+      textTag("Programação Avançada")
+    }
+    tag("ects"){
+      textTag("6.0")
+    }
+    tag("avaliacao"){
+      tag("componente"){
+        atr("nome", "Quizzes")
+        atr("Projeto", "80%")
+      }
+    }
+  }
+}
+val tag = builder.buildTag()
 
+val doc = builder.build()
+```
 

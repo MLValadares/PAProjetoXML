@@ -561,6 +561,42 @@ class Tests {
     }
 
     @Test
+    fun ListWithNameChanger() {
+        @NameChanger("componente")
+        class ComponenteAvaliacao(val nome: String, val peso: Int)
+
+        @NameChanger("fuc")
+        class FUC(
+            val codigo: String,
+            val nome: String,
+            val ects: Double,
+            val observacoes: String,
+            @NameChanger("avaliacaoModificada")
+            val avaliacao: List<ComponenteAvaliacao>
+        )
+        val fuc = FUC(
+            "M4310",
+            "Programação Avançada",
+            6.0,
+            "Observações",
+            listOf(
+                ComponenteAvaliacao("Quizzes", 20),
+                ComponenteAvaliacao("Projeto", 80)
+            )
+        )
+
+        val tag = fuc.toTag()
+
+        assertEquals("fuc", tag.name)
+        assertEquals("M4310", tag.attributes["codigo"])
+        assertEquals("Programação Avançada", tag.attributes["nome"])
+        assertEquals("6.0", tag.attributes["ects"])
+
+        val avaliacaoModificadaExists = (tag as CompositeTag).children.any { it.name == "avaliacaoModificada" }
+        assertTrue(avaliacaoModificadaExists, "avaliacaoModificada tag not found as child")
+    }
+
+    @Test
     fun annotationListToComposite() {
         class ComponenteAvaliacao(val nome: String, val peso: Int)
         class FUC(
@@ -781,7 +817,7 @@ class Tests {
     }
 
     @Test
-    fun `buildTag should create a StringTag when textContent is present`() {
+    fun testBuildTagcreateStringTaghentextContent() {
         val builder = XmlBuilder("greeting").apply {
             textTag("Hello, World!")
             atr("language", "English")
@@ -797,7 +833,7 @@ class Tests {
     }
 
     @Test
-    fun `buildTag should create a CompositeTag when children are present`() {
+    fun testBuildTagCreatesCompositeTagWhenChildren() {
         val builder = XmlBuilder("greeting").apply {
             atr("language", "English")
             tag("note") {
@@ -816,7 +852,7 @@ class Tests {
     }
 
     @Test
-    fun `buildTag should create a CompositeTag with multiple children`() {
+    fun testBuildTagCompositeTagMultipleChildren() {
         val builder = XmlBuilder("root").apply {
             tag("greeting") {
                 textTag("Hello, World!")
@@ -838,7 +874,7 @@ class Tests {
         }
     }
     @Test
-    fun `build should create a Document with a root CompositeTag`() {
+    fun testBuildRootCompositeTag() {
         val builder = XmlBuilder("root").apply {
             tag("greeting") {
                 atr("language", "English")
@@ -857,7 +893,7 @@ class Tests {
         assertTrue(root.children[0] is CompositeTag)
     }
     @Test
-    fun `build should create a Document with a root StringTag`() {
+    fun testBuildDocumentRootStringTag() {
         val builder = XmlBuilder("greeting").apply {
             atr("language", "English")
             textTag("Hello, World!")
@@ -873,7 +909,7 @@ class Tests {
     }
 
     @Test
-    fun `build should create a Document with nested tags`() {
+    fun testBuildDocumentNestedTags() {
         val builder = XmlBuilder("root").apply {
             tag("greeting") {
                 atr("language", "English")
@@ -915,7 +951,7 @@ class Tests {
     }
 
     @Test
-    fun `build should handle empty document`() {
+    fun testBuildHandleEmptyDocument() {
         val builder = XmlBuilder("root")
         val document = builder.build()
 
@@ -925,7 +961,6 @@ class Tests {
         assertEquals("root", root.name)
         assertTrue(root.children.isEmpty())
     }
-
 
 }
 
