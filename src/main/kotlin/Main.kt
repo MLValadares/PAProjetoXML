@@ -34,7 +34,7 @@ class Document(val rootTag: Tag){
      * @param filePath o caminho do ficheiro onde o documento XML será escrito
      */
     fun writeToFile(filePath: String) {
-        val xmlString = this.toString()
+        val xmlString = this.prettyString()
         try { //completar testes
             File(filePath).writeText(xmlString)
             println("XML document written to file: $filePath")
