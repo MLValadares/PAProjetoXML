@@ -1,5 +1,5 @@
 # XML Manipulation Library
-## Realizdo por:
+## Realizado por:
 Miguel Valadares - 98345
 
 João Franco - 98975
